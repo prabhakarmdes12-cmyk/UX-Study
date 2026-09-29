@@ -41,6 +41,14 @@ npm run build
 npm run db:generate
 ```
 
+## Beyond the interview — Kaizen Mode
+
+The studio is built to outlive the job hunt. See [`NEXT_SCOPE.md`](NEXT_SCOPE.md) for the
+defined next scope: a 10-minute daily learning experience (Principle of the Day, spaced
+revision with honest decay, Foundations → Senior → Staff shelves, Wisdom Mirrors pairing
+each UX principle with the Gita, Ramcharitmanas, Reiki, and fellow traditions, and a
+monthly "watchtower" habit for tracking how platforms and standards actually change).
+
 ## Product principles
 
 - Speaking is part of every practice day.
