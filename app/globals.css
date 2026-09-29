@@ -141,4 +141,17 @@ html.a11y-xl{zoom:1.22}
   .wisdom,.mentalbanner,.casestudy,.trapbox{border:2px solid ButtonBorder!important}
 }
 
+/* ── Kaizen Mode — Principle of the Day & spaced revision ─────────────────── */
+.dailycard{background:#fffdf7;border-left:3px solid #d9a441}
+.dosehead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.streakchip{display:inline-flex;align-items:center;gap:6px;background:#fff3df;color:#8a5208;font-size:12px;font-weight:700;border:1px solid #eadbb8;border-radius:999px;padding:7px 12px;white-space:nowrap}
+.streakchip svg{color:#d97b06}
+.dailycard h2{margin:0 0 10px}
+.dosemodel{font-family:Manrope,sans-serif;font-weight:600;font-size:15.5px;color:#2c3a58;background:#f6f3ea;border:1px solid #eee7d2;border-radius:8px;padding:12px 14px;margin:0 0 12px;line-height:1.55}
+.dosewisdom{display:flex;gap:7px;align-items:center;font-size:12px;color:#8a5f14;font-weight:700;margin:0 0 15px}
+.dosewisdom svg{flex-shrink:0;color:#b07d10}
+.s-ref{background:#fde8e8;color:#9c1f1f}
+.pdot.ref{background:#c62828}
+
+
 
