@@ -1836,7 +1836,7 @@ export const uxEncyclopedia: TopicEntry[] = [
   {
     id: 'fitts-law',
     category: 'Interaction & Cognitive Laws',
-    title: "Fitts's Law & Target Design",
+    title: 'Fitts’s Law & Target Design',
     eyebrow: 'COGNITIVE PRINCIPLE',
     summary: 'The time to hit a target grows with distance and shrinks with size. Primary actions deserve large targets near the point of action; destructive actions deserve distance and isolation.',
     mentalModel: 'T ≈ a + b·log₂(1 + D/W). Bigger + closer = faster. Minimum sizes: 44pt (iOS), 48dp (Material), 24×24 CSS px (WCAG 2.2).',
@@ -1857,7 +1857,7 @@ export const uxEncyclopedia: TopicEntry[] = [
   {
     id: 'hicks-law',
     category: 'Interaction & Cognitive Laws',
-    title: "Hick's Law & Choice Reduction",
+    title: 'Hick’s Law & Choice Reduction',
     eyebrow: 'COGNITIVE PRINCIPLE',
     summary: 'Decision time grows logarithmically with the number and complexity of choices. Reducing visible options, grouping related ones, and providing smart defaults shortens every decision.',
     mentalModel: 'T = b·log₂(n + 1). Reduce n where you can; group and default where you cannot.',
@@ -2351,8 +2351,7 @@ export const uxEncyclopedia: TopicEntry[] = [
     id: 'optimistic-ui',
     category: 'Technical Literacy for Designers',
     title: 'Optimistic UI & Rollback',
-    eyebrow: 'TECHNICAL FLUENCY',
-    summary: 'For reversible, high-confidence actions, render success before the server confirms — and keep a visible path back if it fails. For consequential actions, honesty beats speed: confirm with the authoritative system.',
+    eyebrow: 'TECHNICAL FLUENCY',    summary: 'For reversible, high-confidence actions, render success before the server confirms — and keep a visible path back if it fails. For consequential actions, honesty beats speed: confirm with the authoritative system.',
     mentalModel: 'Optimise when: reversible + >99% success + low consequence. Rollback must be as visible as the action. The Masterbook question: what if the request succeeds but the response never arrives?',
     keyPrinciples: [
       'Candidate test: reversible, almost-always-successful, low-stakes — likes, saves, toggles.',
@@ -2369,4 +2368,225 @@ export const uxEncyclopedia: TopicEntry[] = [
     relatedSource: 'Masterbook Part III · Offline-first & CRDT design literature',
   },
 ];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wisdom Mirrors — each encyclopedia topic paired with a parallel from an older
+// contemplative tradition (Gita, Ramcharitmanas, Reiki, Zen, and friends), so the
+// reader can feel one principle in two tongues. Quotations kept to well-attested
+// lines; everything else is respectful paraphrase.
+
+export interface WisdomMirror {
+  source: string;
+  verse: string;
+  parallel: string;
+}
+
+export const wisdomMirrors: Record<string, WisdomMirror> = {
+  'jtbd': {
+    source: 'Bhagavad Gita 2.47 · Karma Yoga',
+    verse: 'Your right is to the action alone, never to its fruits.',
+    parallel: 'Serve the user’s job and release attachment to the requested feature. A designer wedded to the feature is anxious about its fate; a designer wedded to the job is free to find the right shape.',
+  },
+  'problem-framing': {
+    source: 'Upanishads · Neti neti',
+    verse: 'Not this, not this.',
+    parallel: 'The Self is found by negating what it is not; a problem gains shape the same way. A senior frame excludes solutions deliberately — boundaries are how truth becomes handleable.',
+  },
+  'zero-to-scale': {
+    source: 'Tao Te Ching, ch. 64 · Lao Tzu',
+    verse: 'A journey of a thousand miles begins beneath one’s feet.',
+    parallel: 'At 0→1, simplify to the first honest step — the cheapest test of the riskiest assumption. At scale, the discipline is walking the same road every day without shortcuts: patterns, experiments, guardrails.',
+  },
+  'three-ways': {
+    source: 'Zen · Shoshin (beginner’s mind)',
+    verse: 'In the beginner’s mind there are many possibilities; in the expert’s, few.',
+    parallel: 'The radical option exists only for a mind not finished with the question. Before expertise closes the door, generate the expected, the reframed, and the impossible — then let evaluation judge them.',
+  },
+  'choose-methods': {
+    source: 'Vedanta · Viveka (discernment)',
+    verse: 'Discernment separates the eternal from the apparent.',
+    parallel: 'Method choice is the same art: separate what the evidence can actually show from what you wish it showed. Wishful evidence is apparent truth; a matched method approaches the real.',
+  },
+  'observation': {
+    source: 'Ramcharitmanas · Satsang',
+    verse: 'बिनु सतसंग विवेक न होइ — without the company of the wise, discernment does not arise.',
+    parallel: 'Go sit with the user’s reality the way a seeker goes to satsang: truth appears in presence, not in second-hand reports. Behaviour witnessed is wisdom; behaviour summarised is hearsay.',
+  },
+  'usability-testing': {
+    source: 'Ramcharitmanas, Sundarakand',
+    verse: 'धीरज धरम मित्र अरु नारी — आपद काल परखिए चारि: in times of adversity, four are truly tested.',
+    parallel: 'Adversity is the honest examiner. Give your design a friendly adversity first — a task, a confused user, a keyboard — so that real users never meet the hostile version.',
+  },
+  'triangulation': {
+    source: 'Jainism · Anekāntavāda (many-sidedness)',
+    verse: 'Reality has many faces, and each observer perceives one honestly.',
+    parallel: 'Analytics, interviews, and support logs are three honest partial truths. Triangulation is syadvada for products: hold each source as conditionally true, and let the design rest on their meeting point.',
+  },
+  'journey-mapping': {
+    source: 'Ramcharitmanas · the seven kands',
+    verse: 'Tulsidas shaped one vast life into seven kands so every stage carried meaning.',
+    parallel: 'Map the user’s experience into chapters the same way. Pain only gets an address when the journey has stages — grief unchaptered is grief unfixable.',
+  },
+  'service-blueprints': {
+    source: 'Buddhism · Pratītyasamutpāda (dependent origination)',
+    verse: 'Whatever appears has arisen from conditions; nothing appears alone.',
+    parallel: 'The screen the user touches is the visible tip of a causal chain — queues, systems, departments. The blueprint draws the chain so we stop treating symptoms on the surface.',
+  },
+  'touchpoints': {
+    source: 'Mahayana · Indra’s Net',
+    verse: 'In Indra’s net, every jewel reflects every other jewel.',
+    parallel: 'Each touchpoint — app, SMS, letter, call — must reflect the same product. When one channel contradicts the rest, the net tears, and the user falls through the hole.',
+  },
+  'fail-points': {
+    source: 'Bhagavad Gita 2.62–63',
+    verse: 'Dwelling breeds attachment; attachment breeds anger; anger, delusion; delusion, the ruin of reason.',
+    parallel: 'Catastrophe is a cascade with a small first link. Find the first link in the service — the queue jump, the stale status — and design its break before the user meets the cascade.',
+  },
+  'taxonomy-labelling': {
+    source: 'Tao Te Ching, ch. 1 · Lao Tzu',
+    verse: 'The name that can be named is not the eternal name.',
+    parallel: 'Labels never fully contain things — so borrow the user’s words; they point where internal jargon cannot. The humble label, tested in card sorts, outperforms the clever one.',
+  },
+  'wayfinding': {
+    source: 'The Mahabharata · Krishna as sarathi',
+    verse: 'Krishna holds the reins of the chariot, but Arjuna fights the battle.',
+    parallel: 'Good navigation is a charioteer: it orients, steadies, and knows the terrain — while leaving the user sovereign over the destination. The moment wayfinding seizes the reins, trust dies.',
+  },
+  'depth-vs-breadth': {
+    source: 'Buddha to Sona · the tuned lute',
+    verse: 'A string too tight snaps; a string too loose cannot sing.',
+    parallel: 'Breadth is the loose string — nothing resonates under twelve choices. Depth untested is the taut string — users snap under the digging. Tuning the structure is the middle way.',
+  },
+  'findability': {
+    source: 'Rig Veda 1.89',
+    verse: 'आ नो भद्राः क्रतवो यन्तु विश्वतः — may noble thoughts come to us from every direction.',
+    parallel: 'Findability is designing every direction from which an answer may arrive: the menu, the search, the filter, the link — and receiving the seeker graciously at each gate.',
+  },
+  'fitts-law': {
+    source: 'Yoga Sutra 2.46 · Patanjali',
+    verse: 'Sthira-sukham-āsanam — the posture should be steady and comfortable.',
+    parallel: 'Targets, like asanas, should be stable to reach and easy to hold. If the user strains for a control — too small, too far, too near danger — the posture of the interface is wrong.',
+  },
+  'hicks-law': {
+    source: 'Yoga Sutra 1.2 · Patanjali',
+    verse: 'Yogaś citta-vṛtti-nirodhaḥ — yoga is the stilling of the mind’s waves.',
+    parallel: 'Every visible choice is another vritti rippling the user’s attention. Reduce the waves — group, default, disclose — and deciding becomes stillness instead of turbulence.',
+  },
+  'feedback-states': {
+    source: 'Reiki · the Gokai (five precepts)',
+    verse: 'Just for today, do not anger.',
+    parallel: 'Frustration is born of silence and uncertainty, and users meet our systems far more than once a day. Timely acknowledgment is the interface’s daily vow: no action leaves the user to wonder alone.',
+  },
+  'affordances': {
+    source: 'Murti shastra · sacred iconography',
+    verse: 'The lotus, the abhaya mudra, the chakra — form communicates meaning instantly across centuries.',
+    parallel: 'Temple iconography never needed a manual; the form itself was the message. Controls deserve the same signifying discipline: perceivable purpose before a single touch.',
+  },
+  'visual-hierarchy': {
+    source: 'Ramcharitmanas, Lankakand',
+    verse: 'जाकी रही भावना जैसी, प्रभु मूरत देखी तिन तैसी — as the heart’s feeling, so the vision one beholds.',
+    parallel: 'Attention follows feeling, and hierarchy is feeling staged: what the eye meets first decides what the screen means. Compose the first glance as deliberately as a darshan.',
+  },
+  'spacing-tokens': {
+    source: 'Hindustani raga · taal',
+    verse: 'Notes without rhythm are noise; the spaces between swaras make the raga.',
+    parallel: 'Spacing is the taal of layout — the rests between the notes that let a screen be heard. A tokenised scale is the taal written down so every musician improvises in time.',
+  },
+  'typography-interface': {
+    source: 'Bhagavad Gita 17.15 · austerity of speech',
+    verse: 'Speech that is truthful, pleasant, beneficial, and causes no agitation.',
+    parallel: 'Typography is that vow made visible: truthful sizing, pleasant measure, beneficial order, and nothing that agitates the reader. Set type as tapasya — a discipline in honour of the reader.',
+  },
+  'token-architecture': {
+    source: 'Sri Ramakrishna',
+    verse: 'যত মত, তত পথ — as many ways as there are paths, yet one truth.',
+    parallel: 'Semantic tokens carry the same humility: one value, purpose-named wherever it serves. Dark mode, brand themes, high contrast — many paths, one source.',
+  },
+  'component-apis': {
+    source: 'Ṛta · the Vedic order',
+    verse: 'The cosmos holds because ṛta — sacred agreement — is honoured.',
+    parallel: 'A product holds together the same way: teams honouring the component contract rather than hand-rolling exceptions. Every bespoke fork is a small crack in the order.',
+  },
+  'wcag-defaults': {
+    source: 'Ramcharitmanas, Ayodhyakand',
+    verse: 'परहित सरिस धरम नहिं भाई — there is no dharma equal to benevolence.',
+    parallel: 'Accessibility is benevolence compiled into defaults. When AA lives inside the components, kindness stops requiring heroic effort from each product team.',
+  },
+  'dynamic-type': {
+    source: 'Gandhi’s Talisman',
+    verse: 'Recall the face of the weakest person you have seen, and ask if your step will be of use to them.',
+    parallel: 'Test every layout against the largest accessibility text size. That setting belongs to exactly the person the talisman describes — and a clipped balance is a clipped dignity.',
+  },
+  'contrast-signals': {
+    source: 'Jain & Buddhist parable · the blind men and the elephant',
+    verse: 'Each perceives truly — through one sense only.',
+    parallel: 'Never make meaning ride a single channel. Colour, icon, words, and pattern must witness together, because users meet the interface through different senses, light, and abilities.',
+  },
+  'screen-readers': {
+    source: 'Indian epistemology · Śabda pramāṇa',
+    verse: 'Word and sound, rightly received, are a complete means of knowledge.',
+    parallel: 'Honour the ear’s path with the rigour you give the eye’s: semantic structure, managed focus, honest announcements. A flow that works spoken aloud is a flow that is truly designed.',
+  },
+  'heart-framework': {
+    source: 'Ayurveda · the doshas',
+    verse: 'Health is not one number — it is balance, watched over time.',
+    parallel: 'Read experience like a vaidya reads a pulse: a few vital signs in relation, never one metric in isolation. Choosing two HEART categories per feature is the art of the balance.',
+  },
+  'input-output-metrics': {
+    source: 'Epictetus · the dichotomy of control',
+    verse: 'Some things are up to us; other things are not up to us.',
+    parallel: 'Inputs are up to the team; outputs arrive on their own time. Whip the lagging indicator and you exhaust the crew — steer the inputs, and let the outputs judge you fairly.',
+  },
+  'guardrail-metrics': {
+    source: 'Patanjali’s first yama · Ahimsa',
+    verse: 'Before all other vows: non-harm.',
+    parallel: 'A guardrail is ahimsa written into the experiment: pursue the conversion uplift, but let harm — errors, rework, exclusion — be the line the win may never cross.',
+  },
+  'cohort-retention': {
+    source: 'Kabir',
+    verse: 'पोथी पढ़ि पढ़ि जग मुआ, पंडित भया न कोय — the world died reading pages, and no one became wise.',
+    parallel: 'Aggregate dashboards are pages; cohorts are lived understanding. The blended average flatters everyone and teaches nothing — read how each group actually fares over time.',
+  },
+  'grounding-citations': {
+    source: 'Śruti pramāṇa · testimony of worthy sources',
+    verse: 'A claim carries the worth of its source — and the source must be inspectable.',
+    parallel: 'Let every AI answer carry its śruti: passage-level citations, dates of the documents, and honest statements about what the system cannot see. Testimony without provenance is rumour.',
+  },
+  'confidence-thresholds': {
+    source: 'Kalama Sutta',
+    verse: 'Do not accept by hearsay, tradition, or eloquence — test it in your own experience.',
+    parallel: 'The Buddha taught calibrated trust 2,500 years before calibrated models. Let confidence change what the interface permits: act, propose, or defer — and never let eloquence impersonate certainty.',
+  },
+  'human-authority': {
+    source: 'Bhagavad Gita 18.63',
+    verse: 'Having reflected on this fully, act as you choose.',
+    parallel: 'Krishna advises; Arjuna decides. That is the authority boundary in one verse: let AI be the adviser with perfect memory — the human signature on the consequential act remains sovereign.',
+  },
+  'hallucination-recovery': {
+    source: 'Advaita · Māyā',
+    verse: 'Maya is that which appears convincingly real and is not.',
+    parallel: 'Hallucination is the model’s maya — fluent, confident, false. The interface must carry viveka, the lamp of discernment: grounding, sources, correction, and a graceful way back to truth.',
+  },
+  'apis-contracts': {
+    source: 'Marcus Aurelius · Meditations',
+    verse: 'The impediment to action advances action; what stands in the way becomes the way.',
+    parallel: 'The API’s limits — no total count, slow aggregations, mid-session permission changes — are not obstacles to the design. Read well, they are the design.',
+  },
+  'caching-stale': {
+    source: 'Heraclitus',
+    verse: 'No one steps into the same river twice.',
+    parallel: 'Cached data is yesterday’s river held still to look current. Mark the water’s age, offer fresh drawing, and never let stillness impersonate the flow.',
+  },
+  'latency-loading': {
+    source: 'Japanese tea ceremony · roji (the dewy path)',
+    verse: 'Guests cross the garden slowly before tea; the approach is part of the tea.',
+    parallel: 'Design the wait with the same hospitality: paced reveal, honest progress, something worth the crossing. A designed pause is respect; an ignored one is abandonment.',
+  },
+  'optimistic-ui': {
+    source: 'Hadith (Tirmidhi · prophetic wisdom)',
+    verse: 'Tie your camel, then place your trust in Providence.',
+    parallel: 'Optimistic UI is exactly this ordering: render the confident result — and keep the tether. Rollback, idempotency, and visible recovery designed before the trust is extended.',
+  },
+};
+
 

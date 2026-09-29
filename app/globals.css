@@ -105,3 +105,40 @@ button{display:inline-flex;align-items:center;justify-content:center;gap:8px;tra
   .chip{font-size:12px;padding:8px 12px;min-height:40px}
 }
 
+/* ── Visible accessibility controls ───────────────────────────────────────── */
+.headercrumb{flex-shrink:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a11ycontrols{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.a11ylabel{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1.4px;color:#5a6b84;font-weight:700;margin-right:2px}
+.a11ycontrols button{background:#fff;color:#3c4b63;border:1px solid #d5dcea;border-radius:7px;padding:8px 10px;min-height:40px;min-width:40px;font-size:12px;font-weight:700}
+.a11ycontrols button.on{background:#202c65;border-color:#202c65;color:#fff}
+.a11ycontrols button:disabled{opacity:.45}
+.a11ysize{font-size:11px;color:#5a6b84;min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.a11ylabel>span{display:none}}
+@media(max-width:650px){.a11ycontrols .a11ytxt{display:none}.a11ycontrols button{min-width:42px}}
+/* Accessibility modes — applied as classes on <html> */
+html.a11y-lg{zoom:1.1}
+html.a11y-xl{zoom:1.22}
+.a11y-calm *,.a11y-calm *::before,.a11y-calm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+.a11y-read body{line-height:1.7}
+.a11y-read p,.a11y-read li,.a11y-read textarea{letter-spacing:.012em}
+.a11y-read .script,.a11y-read .lede,.a11y-read .tcsum,.a11y-read .casestudy p,.a11y-read .wisdomtext,.a11y-read .wisdomverse,.a11y-read .principlelist li{line-height:1.9!important}
+.a11y-contrast body{color:#0b1220;background:#ffffff}
+.a11y-contrast .muted,.a11y-contrast .smalltext,.a11y-contrast .tcsum,.a11y-contrast .sayhint,.a11y-contrast .statusnote,.a11y-contrast .flashhint,.a11y-contrast .topicnum,.a11y-contrast .lede,.a11y-contrast .cleanlist,.a11y-contrast .privacytext,.a11y-contrast .duration,.a11y-contrast .notebottom span,.a11y-contrast .sourcespan,.a11y-contrast .casestudy p,.a11y-contrast .trapgrid p,.a11y-contrast .filters label,.a11y-contrast .wisdomtext,.a11y-contrast .wisdomnote,.a11y-contrast .lesson>p,.a11y-contrast .daycard,.a11y-contrast footer{color:#1c2b3f!important}
+.a11y-contrast .panel,.a11y-contrast .topiccard,.a11y-contrast .chip,.a11y-contrast .progpill,.a11y-contrast .challengeitem,.a11y-contrast .daycard,.a11y-contrast .sayaloud,.a11y-contrast .lessonmenu{border-color:#8b99ad!important}
+.a11y-contrast a{color:#1d4ed8;text-decoration:underline}
+.a11y-contrast .statusbadge,.a11y-contrast .domtag,.a11y-contrast .tag{border:1px solid currentColor}
+.a11y-contrast .answerpath span,.a11y-contrast .threeways>div{border-color:#94a3b8}
+
+/* ── Wisdom Mirror — design principles in older tongues ───────────────────── */
+.wisdom{background:#fdf6ec;border:1px solid #eeddb8;border-left:3px solid #d9a441;border-radius:12px;padding:18px;margin:6px 0 4px}
+.wisdom h3{margin:0 0 10px;color:#7a5410}
+.wisdom h3 svg{color:#b07d10;position:relative;top:1px}
+.wisdomsrc{font-size:11px;letter-spacing:1.1px;font-weight:700;color:#8a5f14;margin:0 0 6px;text-transform:uppercase}
+.wisdomverse{font-size:14.5px;line-height:1.6;color:#6b4a1c;font-family:Manrope,sans-serif;font-weight:700;margin:0 0 10px}
+.wisdomtext{font-size:14.5px;line-height:1.65;color:#4a3f28;margin:0 0 8px}
+.wisdomnote{font-size:12.5px;color:#6b5a35;font-style:italic;margin:0}
+@media(forced-colors:active){
+  .wisdom,.mentalbanner,.casestudy,.trapbox{border:2px solid ButtonBorder!important}
+}
+
+
