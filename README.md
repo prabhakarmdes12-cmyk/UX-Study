@@ -6,14 +6,19 @@ A private, speaking-first practice workspace for senior product-design interview
 
 - Seven-day guided starter programme
 - Sixty-day product-design curriculum
-- Forty design challenges across consumer, enterprise, accessibility, search, AI, and interaction craft
-- Thirty behavioral and portfolio prompts
+- 95 design challenges across Apple, Google, Atlassian, and general product design (consumer, enterprise, accessibility, search, AI, and interaction craft)
+- Dedicated company tracks: 20 Apple craft exercises, 25 Google scale/AI exercises, and 10 Atlassian enterprise workflow exercises
+- 30 product and interaction design critique teardowns (Google, Apple, Spotify, Amazon, Slack, Notion, Jira, Gov Portal, AI)
+- Mock interview loop simulation decks with timed rounds for Apple, Google, Atlassian, Portfolio Defense, and Whiteboard
+- Thirty behavioral and leadership prompts
 - Speaking timer, browser audio recording, playback, and private storage
-- Portfolio story bank with evidence labels
+- Portfolio story bank with 12-field evidence discipline
 - Study modules and links to primary design sources
 - Progress, reflection, and export tools
 
-The original `Prabhakar_Senior_Product_Designer_Interview_Study_Playbook.docx` remains in this repository as source material.
+Source materials in this repository:
+- `Prabhakar_Product_Design_Interview_Masterbook_Apple_Google.docx` (2026 Masterbook)
+- `Prabhakar_Senior_Product_Designer_Interview_Study_Playbook.docx` (Foundation Playbook)
 
 ## Run locally
 
