@@ -106,6 +106,7 @@ export default function Studio(){
   const [speakingId,setSpeakingId]=useState<string|null>(null);
   const [autoVoice,setAutoVoice]=useState(false);
   const [startersCollapsed,setStartersCollapsed]=useState(false);
+  const [mobileTab,setMobileTab]=useState<'list'|'detail'>('list');
 
   function saveSahayakToEvidence(){
     const lastUser=[...sahayakChat].reverse().find(m=>m.role==='user');
@@ -498,6 +499,7 @@ export default function Studio(){
  function selectTopic(id:string,shouldScroll=true){
   setTopicSel(id);
   setSaySel('thirty');
+  setMobileTab('detail');
   if(shouldScroll){
     setTimeout(()=>{
       if(detailRef.current){
@@ -603,7 +605,7 @@ export default function Studio(){
  useEffect(()=>{let stop=false;(async()=>{for(const id of shotKeys.split(',').filter(Boolean)){if(shotUrlsRef.current[id])continue;try{const b=await getShot(id);if(b&&!stop){const url=URL.createObjectURL(b);shotUrlsRef.current[id]=url;setShotUrls(u=>({...u,[id]:url}));}}catch{/* image unreadable on this device */}}})();return()=>{stop=true;};},[shotKeys]);
  useEffect(()=>()=>{Object.values(shotUrlsRef.current).forEach(u=>URL.revokeObjectURL(u));},[]);
  const q=query.trim().toLowerCase();
- const baseTopics=domain==='__review'?reviewList:uxEncyclopedia.filter(t=>domain==='All'||t.category===domain);
+ const baseTopics=(q||domain==='All')?uxEncyclopedia:domain==='__review'?reviewList:uxEncyclopedia.filter(t=>t.category===domain);
  const filteredTopics=baseTopics.filter(t=>!q||[t.title,t.summary,t.mentalModel,t.category,t.eyebrow,t.keyPrinciples.join(' ')].join(' ').toLowerCase().includes(q));
  const selTopic=uxEncyclopedia.find(t=>t.id===topicSel)||null;
  const selIdx=selTopic?uxEncyclopedia.indexOf(selTopic):-1;
@@ -637,7 +639,7 @@ export default function Studio(){
   <span className="roletext">Senior product design · Admin</span>
   <div className="private"><ShieldCheck size={14} aria-hidden="true"/> Private practice space</div>
 </div>
-</aside><main id="main-content" tabIndex={-1}><header role="banner"><span className="headercrumb">DESIGN PRACTICE / {titleMap[view][0]}</span><div className="a11ycontrols" role="group" aria-label="Accessibility display controls"><span className="a11ylabel"><Accessibility size={16} aria-hidden="true"/> <span>DISPLAY</span></span><button type="button" aria-label={`Decrease text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===0} onClick={()=>setA11y({size:Math.max(0,a11y.size-1)})}>A−</button><span className="a11ysize" aria-hidden="true">{A11Y_SIZES[a11y.size]}</span><button type="button" aria-label={`Increase text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===2} onClick={()=>setA11y({size:Math.min(2,a11y.size+1)})}>A+</button><button type="button" className={a11y.contrast?'on':''} aria-pressed={a11y.contrast} aria-label="Toggle high contrast" onClick={()=>setA11y({contrast:!a11y.contrast})}><span className="a11ytxt">Contrast</span></button><button type="button" className={a11y.calm?'on':''} aria-pressed={a11y.calm} aria-label="Toggle reduced motion" onClick={()=>setA11y({calm:!a11y.calm})}><span className="a11ytxt">Calm motion</span></button><button type="button" className={a11y.read?'on':''} aria-pressed={a11y.read} aria-label="Toggle comfortable reading mode" onClick={()=>setA11y({read:!a11y.read})}><span className="a11ytxt">Comfort</span></button></div>
+</aside><main id="main-content" tabIndex={-1}><header role="banner"><span className="headercrumb">DESIGN PRACTICE / {titleMap[view][0]}</span><div className="a11ycontrols" role="group" aria-label="Accessibility display controls"><span className="a11ylabel"><Accessibility size={16} aria-hidden="true"/> <span>DISPLAY</span></span><button type="button" aria-label={`Decrease text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===0} onClick={()=>setA11y({size:Math.max(0,a11y.size-1)})}>A−</button><span className="a11ysize" aria-hidden="true">{A11Y_SIZES[a11y.size]}</span><button type="button" aria-label={`Increase text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===2} onClick={()=>setA11y({size:Math.min(2,a11y.size+1)})}>A+</button><button type="button" className={a11y.contrast?'on':''} aria-pressed={a11y.contrast} aria-label="Toggle high contrast" onClick={()=>setA11y({contrast:!a11y.contrast})}><Eye size={14} aria-hidden="true"/><span className="a11ytxt">Contrast</span></button><button type="button" className={a11y.calm?'on':''} aria-pressed={a11y.calm} aria-label="Toggle reduced motion" onClick={()=>setA11y({calm:!a11y.calm})}><Zap size={14} aria-hidden="true"/><span className="a11ytxt">Calm</span></button><button type="button" className={a11y.read?'on':''} aria-pressed={a11y.read} aria-label="Toggle comfortable reading mode" onClick={()=>setA11y({read:!a11y.read})}><BookOpen size={14} aria-hidden="true"/><span className="a11ytxt">Comfort</span></button></div>
 <button type="button" className="headersahayakbtn" onClick={()=>openSahayak(selTopic?.id||doseTopic.id,'bridge')} title="Open Studio Sahayak (Socratic Mentor)" aria-label="Open Studio Sahayak Socratic Mentor"><Sparkles size={14} aria-hidden="true"/><span>Sahayak (सहायक)</span></button>
 <div className="headerauth">
   {user?(
@@ -1128,23 +1130,58 @@ export default function Studio(){
   <div className="searchwrap">
    <Search size={17} aria-hidden="true"/>
    <label className="sr-only" htmlFor="encyc-search">Search encyclopedia topics</label>
-   <input id="encyc-search" type="search" autoComplete="off" placeholder="Search topics — try ‘tokens’, ‘HEART’, ‘Fitts’, ‘stale’…" value={query} onChange={e=>setQuery(e.target.value)}/>
+   <input id="encyc-search" type="search" autoComplete="off" placeholder="Search topics (e.g. Fitts, HEART, tokens)…" value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value&&mobileTab==='detail')setMobileTab('list');}}/>
+   {query&&(
+     <button type="button" className="search-clear-btn" onClick={()=>setQuery('')} aria-label="Clear search query">
+       <X size={15} aria-hidden="true"/>
+     </button>
+   )}
   </div>
-  <div className="progpill" role="status" aria-label={`Revision progress: ${masCount} mastered, ${revCount} in progress, ${refreshCount} due for refresh, ${uxEncyclopedia.length-masCount-revCount-refreshCount} not started`}>
-   <span><span className="pdot mas" aria-hidden="true"/> {masCount} mastered</span>
-   <span><span className="pdot rev" aria-hidden="true"/> {revCount} reviewing</span>
-   {refreshCount>0&&<span><span className="pdot ref" aria-hidden="true"/> {refreshCount} refresh</span>}
-   <span><span className="pdot new" aria-hidden="true"/> {uxEncyclopedia.length-masCount-revCount-refreshCount} to go</span>
+  <div className="encycmeta-row">
+   <div className="progpill" role="status" aria-label={`Revision progress: ${masCount} mastered, ${revCount} in progress, ${refreshCount} due for refresh, ${uxEncyclopedia.length-masCount-revCount-refreshCount} not started`}>
+    <span><span className="pdot mas" aria-hidden="true"/> {masCount} mastered</span>
+    <span><span className="pdot rev" aria-hidden="true"/> {revCount} reviewing</span>
+    {refreshCount>0&&<span><span className="pdot ref" aria-hidden="true"/> {refreshCount} refresh</span>}
+    <span><span className="pdot new" aria-hidden="true"/> {uxEncyclopedia.length-masCount-revCount-refreshCount} to go</span>
+   </div>
+   <button type="button" className={`secondary flashbtn ${flashMode?'on':''}`} aria-pressed={flashMode} onClick={()=>{setFlashMode(!flashMode);setRevealed({})}}>{flashMode?<EyeOff size={16}/>:<GraduationCap size={16}/>} {flashMode?'Exit flashcards':'Flashcard revision'}</button>
   </div>
-  <button type="button" className={`secondary flashbtn ${flashMode?'on':''}`} aria-pressed={flashMode} onClick={()=>{setFlashMode(!flashMode);setRevealed({})}}>{flashMode?<EyeOff size={16}/>:<GraduationCap size={16}/>} {flashMode?'Exit flashcards':'Flashcard revision'}</button>
  </div>
+ {q&&(
+   <div className="search-status-bar">
+     <span>Found <strong>{filteredTopics.length}</strong> topic{filteredTopics.length===1?'':'s'} for “{query}”</span>
+     <button type="button" className="textbutton" onClick={()=>setQuery('')}>Clear search</button>
+   </div>
+ )}
  <div className="domainchips" role="group" aria-label="Filter topics by domain">
   <button type="button" className={domain==='All'?'chip chosen':'chip'} aria-pressed={domain==='All'} onClick={()=>setDomain('All')}>All domains <span>{uxEncyclopedia.length}</span></button>
   <button type="button" className={domain==='__review'?'chip chosen':'chip'} aria-pressed={domain==='__review'} onClick={()=>setDomain('__review')}>For review <span>{reviewList.length}</span></button>
   {uxDomains.map(d=><button type="button" key={d} className={domain===d?'chip chosen':'chip'} aria-pressed={domain===d} onClick={()=>setDomain(d)}>{d} <span>{uxEncyclopedia.filter(t=>t.category===d).length}</span></button>)}
  </div>
  <div className="sr-only" role="status">{selTopic?`Deep dive open: ${selTopic.title}`:''}</div>
- <div className="encyclayout">
+ <div className="mobile-encyc-switch" role="tablist" aria-label="Switch between topic list and deep dive">
+  <button 
+    type="button" 
+    role="tab" 
+    aria-selected={mobileTab==='list'} 
+    className={mobileTab==='list'?'chosen':''}
+    onClick={()=>setMobileTab('list')}
+  >
+    <ListChecks size={15} aria-hidden="true"/>
+    <span>Topics ({filteredTopics.length})</span>
+  </button>
+  <button 
+    type="button" 
+    role="tab" 
+    aria-selected={mobileTab==='detail'} 
+    className={mobileTab==='detail'?'chosen':''}
+    onClick={()=>setMobileTab('detail')}
+  >
+    <BookOpen size={15} aria-hidden="true"/>
+    <span>Deep Dive {selTopic ? `· ${selTopic.title.slice(0, 16)}…` : ''}</span>
+  </button>
+ </div>
+ <div className={`encyclayout mobile-${mobileTab}`}>
   <div className="topicgrid" aria-label={flashMode?'Flashcard revision mode':'All encyclopedia topics'}>
    {filteredTopics.length===0&&<div className="encycempty"><strong>No topics match this view.</strong><p className="muted smalltext">Try a different keyword, or clear the filters to browse all {uxEncyclopedia.length} topics.</p><div className="actions" style={{justifyContent:'center'}}><button type="button" className="secondary small" onClick={()=>{setQuery('');setDomain('All')}}>Clear search & filters</button></div></div>}
    {filteredTopics.map(t=>{
@@ -1173,9 +1210,33 @@ export default function Studio(){
     <article className="panel encycdetail" ref={detailRef} tabIndex={-1} aria-label={`Topic deep dive: ${selTopic.title}`}>
      
      <div className="detailtop">
-      <button type="button" className="secondary small backtotopicsbtn" onClick={()=>{topicGridRef.current?.scrollIntoView({behavior:'smooth',block:'start'});}}>
-        <ArrowLeft size={14} aria-hidden="true"/> Back to topic list
-      </button>
+      <div className="detail-nav-row">
+        <button type="button" className="secondary small backtotopicsbtn" onClick={()=>setMobileTab('list')}>
+          <ArrowLeft size={14} aria-hidden="true"/> Back to topic list
+        </button>
+        <div className="topic-prev-next">
+          <button 
+            type="button" 
+            className="secondary small pnbttn" 
+            disabled={selIdx<=0} 
+            onClick={()=>selectTopic(uxEncyclopedia[selIdx-1].id)}
+            title="Previous topic"
+            aria-label="Previous topic"
+          >
+            ← Prev
+          </button>
+          <button 
+            type="button" 
+            className="secondary small pnbttn" 
+            disabled={selIdx>=uxEncyclopedia.length-1} 
+            onClick={()=>selectTopic(uxEncyclopedia[selIdx+1].id)}
+            title="Next topic"
+            aria-label="Next topic"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
       <span className="domtag">{selTopic.category}</span>
 <span className={`statusbadge ${selBadge.cls}`}>{selBadge.label}</span><span className="topicpos">TOPIC {selIdx+1} OF {uxEncyclopedia.length}</span></div>
      <span className="entryeyebrow">{selTopic.eyebrow}</span>

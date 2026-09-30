@@ -1921,3 +1921,232 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .a11y-contrast .starter-toggle-btn .starter-label {
   color: #000000 !important;
 }
+
+
+/* ── Mobile Search & Scroll Elimination Fixes ──────────────────────────────── */
+.searchwrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.searchwrap > svg {
+  position: absolute;
+  left: 14px;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #76839c;
+  pointer-events: none;
+  z-index: 2;
+}
+.searchwrap input {
+  width: 100% !important;
+  margin-top: 0 !important;
+  padding-left: 42px !important;
+  padding-right: 38px !important;
+  height: 48px !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  font-size: 15px !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+.searchwrap input:focus {
+  border-color: #2563eb !important;
+  outline: 2px solid #2563eb !important;
+  outline-offset: 1px !important;
+}
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f1f5f9;
+  border: 0;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  cursor: pointer;
+  z-index: 2;
+}
+.search-clear-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.search-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  margin: 6px 0 14px;
+  font-size: 13px;
+  color: #1e40af;
+}
+
+.encycmeta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Mobile Segmented Switcher (Topic List vs Deep Dive) */
+.mobile-encyc-switch {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  /* Search wrap takes true single row height */
+  .searchwrap {
+    flex: 0 0 auto !important;
+    height: 48px !important;
+    width: 100% !important;
+  }
+  .encyctop {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .encycmeta-row {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+  .progpill {
+    font-size: 11.5px !important;
+    padding: 7px 12px !important;
+    flex: 1 !important;
+    min-height: 40px !important;
+  }
+  .flashbtn {
+    font-size: 12px !important;
+    padding: 7px 12px !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Single-row horizontal swipeable domain chips (saves 550px of vertical scrolling!) */
+  .domainchips {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    margin: 8px -18px 14px !important;
+    padding: 2px 18px 8px !important;
+    scrollbar-width: none !important;
+  }
+  .domainchips::-webkit-scrollbar {
+    display: none !important;
+  }
+  .domainchips .chip {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    min-height: 38px !important;
+    padding: 7px 13px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* Mobile Switcher */
+  .mobile-encyc-switch {
+    display: flex !important;
+    background: #e2e8f0;
+    padding: 4px;
+    border-radius: 10px;
+    gap: 4px;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+  .mobile-encyc-switch button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    background: transparent;
+    color: #475569;
+    border: 0;
+    min-height: 44px;
+  }
+  .mobile-encyc-switch button.chosen {
+    background: #ffffff;
+    color: #1e3a8a;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  }
+
+  /* Hide the inactive view on mobile so user never scrolls through both */
+  .encyclayout.mobile-list .encycdetailwrap {
+    display: none !important;
+  }
+  .encyclayout.mobile-detail .topicgrid {
+    display: none !important;
+  }
+  .encyclayout.mobile-detail .encycdetailwrap {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Sleek, compact topic cards on mobile */
+  .topiccard {
+    min-height: 0 !important;
+    padding: 14px !important;
+    gap: 6px !important;
+  }
+  .topiccard .tcsum {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Deep dive nav row */
+  .detail-nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .topic-prev-next {
+    display: flex;
+    gap: 6px;
+  }
+  .pnbttn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    min-height: 38px !important;
+  }
+}
+
+/* High Contrast Mode */
+.a11y-contrast .searchwrap input {
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .mobile-encyc-switch {
+  background: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .mobile-encyc-switch button.chosen {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.a11y-contrast .domainchips .chip {
+  border: 2px solid #000000 !important;
+}
