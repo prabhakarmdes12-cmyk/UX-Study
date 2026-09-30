@@ -105,6 +105,27 @@ export default function Studio(){
   const [isListening,setIsListening]=useState(false);
   const [speakingId,setSpeakingId]=useState<string|null>(null);
   const [autoVoice,setAutoVoice]=useState(false);
+  const [startersCollapsed,setStartersCollapsed]=useState(false);
+
+  function saveSahayakToEvidence(){
+    const lastUser=[...sahayakChat].reverse().find(m=>m.role==='user');
+    const lastSahayak=[...sahayakChat].reverse().find(m=>m.role==='sahayak');
+    if(!lastUser&&!lastSahayak){
+      setNotice('No reflections to save yet. Speak or type an answer first!');
+      return;
+    }
+    const activeTopic=uxEncyclopedia.find(t=>t.id===sahayakTopicId)||doseTopic;
+    const noteContent=`### ${activeTopic.title} (${activeTopic.category.toUpperCase()}) — ${new Date().toLocaleDateString()}\n**My Rationale/Defense:** ${lastUser?lastUser.content:'Reviewed principle.'}\n\n**Sparring Insight:** ${lastSahayak?lastSahayak.content:''}`;
+    
+    const existingLog=value('learning_log','');
+    const updatedLog=existingLog?`${existingLog}\n\n---\n\n${noteContent}`:noteContent;
+    save('learning_log',updatedLog);
+    setTopicStat(activeTopic.id,'mastered');
+    if(activeTopic.id===doseTopic.id){
+      markDose(activeTopic.id);
+    }
+    setNotice(`Saved to Study Log & marked "${activeTopic.title}" as Mastered! 🎯`);
+  }
   const recognitionRef=useRef<any>(null);
 
   function cleanTextForSpeech(text:string):string{
@@ -655,6 +676,7 @@ export default function Studio(){
   <div className="actions">
    <button onClick={openDose}><BookOpen size={15}/> Open deep dive</button>
    <button className="secondary" onClick={()=>openSpeak(`Daily recall — “${doseTopic.title}”. Recite the principle from memory, then check yourself against the notes.`,30)}><Mic size={15}/> Recall aloud · 30s</button>
+   <button type="button" className="sahayak-rep-btn" onClick={()=>{openSahayak(doseTopic.id,'defense');setAutoVoice(true);}} title="Start a 60-second voice sparring session with Sahayak on today's principle"><Sparkles size={15} aria-hidden="true"/> 60s Sparring Rep</button>
    <button type="button" className="secondary sahayak-btn" onClick={()=>openSahayak(doseTopic.id,'bridge')}><Sparkles size={15} aria-hidden="true"/> विचार विमर्श · Sahayak</button>
    <button className="secondary" disabled={doseLog[todayStr]===doseTopic.id} onClick={()=>markDose(doseTopic.id)}><Check size={15}/> {doseLog[todayStr]===doseTopic.id?'Reviewed today':'Mark reviewed'}</button>
   </div>
@@ -1292,9 +1314,20 @@ export default function Studio(){
           const activeWisdom=wisdomMirrors[activeTopic.id];
           return(
             <div className="sahayak-context-banner">
-              <div className="context-meta">
-                <span className="context-domain">{activeTopic.category.toUpperCase()}</span>
-                <strong>{activeTopic.title}</strong>
+              <div className="context-meta-row">
+                <div className="context-meta">
+                  <span className="context-domain">{activeTopic.category.toUpperCase()}</span>
+                  <strong>{activeTopic.title}</strong>
+                </div>
+                <button 
+                  type="button" 
+                  className="sahayak-save-btn" 
+                  onClick={saveSahayakToEvidence}
+                  title="Save conversation takeaway to your study log and mark topic as mastered"
+                >
+                  <Download size={13} aria-hidden="true"/>
+                  <span>Save to Log & Master</span>
+                </button>
               </div>
               {activeWisdom&&(
                 <div className="context-wisdom">
@@ -1406,19 +1439,31 @@ export default function Studio(){
           const suggestions=getTopicSuggestions(activeTopic.id);
           return(
             <div className="sahayak-quick-starters" role="region" aria-label="Suggested discussion starters">
-              <span className="starter-label">Try asking or exploring:</span>
-              <div className="starter-chips">
-                {suggestions.map((sugg,i)=>(
-                  <button 
-                    key={i} 
-                    type="button" 
-                    className="starter-chip" 
-                    onClick={()=>handleStarterClick(sugg)}
-                  >
-                    {sugg}
-                  </button>
-                ))}
-              </div>
+              <button 
+                type="button" 
+                className="starter-toggle-btn"
+                onClick={()=>setStartersCollapsed(!startersCollapsed)}
+                aria-expanded={!startersCollapsed}
+              >
+                <span className="starter-label">
+                  <Sparkles size={12} aria-hidden="true"/> Try asking or exploring ({suggestions.length})
+                </span>
+                <ChevronRight size={14} className={startersCollapsed?"toggle-icon":"toggle-icon open"} aria-hidden="true"/>
+              </button>
+              {!startersCollapsed&&(
+                <div className="starter-chips">
+                  {suggestions.map((sugg,i)=>(
+                    <button 
+                      key={i} 
+                      type="button" 
+                      className="starter-chip" 
+                      onClick={()=>handleStarterClick(sugg)}
+                    >
+                      {sugg}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })()}

@@ -1816,3 +1816,108 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   color: #ffffff !important;
   border: 2px solid #ffffff !important;
 }
+
+
+/* ── Sahayak High-Utility & Collapsible Starters Styles ─────────────────────── */
+.sahayak-rep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
+  color: #ffffff !important;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
+  transition: all 0.15s ease;
+}
+.sahayak-rep-btn:hover {
+  background: #1e3a8a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.35);
+}
+.sahayak-rep-btn svg {
+  color: #facc15;
+}
+
+.context-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sahayak-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #1e3a8a !important;
+  border: 1.5px solid #93c5fd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 32px;
+}
+.sahayak-save-btn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Collapsible Starters Header Button */
+.starter-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: 0;
+  padding: 6px 0 8px;
+  cursor: pointer;
+  color: #475569;
+  text-align: left;
+}
+.starter-toggle-btn .starter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #475569;
+  margin: 0;
+}
+.starter-toggle-btn .starter-label svg {
+  color: #3b82f6;
+}
+.toggle-icon {
+  color: #64748b;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toggle-icon.open {
+  transform: rotate(90deg);
+}
+
+/* High Contrast Overrides */
+.a11y-contrast .sahayak-rep-btn {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .sahayak-save-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .starter-toggle-btn .starter-label {
+  color: #000000 !important;
+}
