@@ -58,9 +58,10 @@ button{display:inline-flex;align-items:center;justify-content:center;gap:8px;tra
 .entryeyebrow{font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:#5a6fae;display:block;margin:2px 0 8px}
 .encycdetail h2{margin:0 0 12px}
 .lede{font-size:15px;line-height:1.7;color:#435272}
-.mentalbanner{background:#202c65;color:#fff;border-radius:12px;padding:18px 20px;margin:20px 0}
-.mentalbanner>span{font-size:10px;letter-spacing:1.8px;color:#aab4e8;font-weight:700}
-.mentalbanner p{margin:8px 0 0;font-size:15.5px;line-height:1.6;font-family:Manrope,sans-serif;font-weight:600}
+.mentalbanner{background:#172554;color:#ffffff;border-radius:12px;padding:18px 20px;margin:20px 0;border:1.5px solid #1e3a8a;box-shadow:0 4px 14px rgba(15,23,42,0.08)}
+.mentalbanner>span{display:block;font-size:11px;letter-spacing:1.8px;color:#93c5fd !important;font-weight:800;text-transform:uppercase}
+.mentalbanner p{margin:8px 0 0;font-size:16px;line-height:1.65;font-family:Manrope,sans-serif;font-weight:600;color:#ffffff !important}
+.mentalbanner *{color:#ffffff}
 .encycdetail h3{display:flex;align-items:center;gap:8px;margin:26px 0 12px}
 .principlelist{list-style:none;padding:0;margin:0;display:grid;gap:11px}
 .principlelist li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:#37455d;line-height:1.6}
@@ -409,9 +410,7 @@ html.a11y-contrast,
 }
 
 /* Hero & Dark Accent Blocks */
-.a11y-contrast .hero,
-.a11y-contrast .mentalbanner,
-.a11y-contrast .drilltimer {
+.a11y-contrast .hero {
   background: #000000 !important;
   color: #ffffff !important;
   border: 2px solid #000000 !important;
@@ -522,4 +521,32 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
     padding: 8px 14px;
     font-size: 12px;
   }
+}
+
+
+/* Mental Model Banner & Drill Timer in High-Contrast Mode */
+.a11y-contrast .mentalbanner {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2.5px solid #000000 !important;
+}
+.a11y-contrast .mentalbanner * {
+  color: #000000 !important;
+}
+.a11y-contrast .mentalbanner > span {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  letter-spacing: 2px !important;
+}
+.a11y-contrast .mentalbanner p {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+.a11y-contrast .drilltimer {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .drilltimer * {
+  color: #000000 !important;
 }
