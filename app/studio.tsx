@@ -289,7 +289,7 @@ export default function Studio(){
       if(detailRef.current){
         detailRef.current.scrollTop=0;
         detailRef.current.scrollIntoView({behavior:'smooth',block:'start'});
-        detailRef.current.focus?.({preventScroll:true});
+        // focus removed to prevent mobile Chrome touch-focus lock
       }
     },50);
   }

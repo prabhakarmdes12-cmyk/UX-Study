@@ -95,7 +95,7 @@ button{display:inline-flex;align-items:center;justify-content:center;gap:8px;tra
 .encycplaceholder strong{display:block;font-family:Manrope,sans-serif;color:#2c3a50;font-size:17px;margin-bottom:8px}
 .encycplaceholder p{font-size:14px;line-height:1.65;max-width:400px;margin:0 auto}
 @media(max-width:1150px){.encyclayout{grid-template-columns:minmax(0,1fr) 300px}}
-@media(max-width:1000px){.encyclayout{grid-template-columns:1fr}.encycdetail{position:static;max-height:none;order:-1}}
+@media(max-width:1000px){.encyclayout{grid-template-columns:1fr}.encycdetailwrap{width:100%}.encycdetail{position:static !important;max-height:none !important;overflow:visible !important;overscroll-behavior:auto !important;touch-action:pan-y !important}}
 @media(max-width:900px){.topicgrid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){
   .topicgrid{grid-template-columns:1fr}
@@ -707,14 +707,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 @media(max-width: 900px) {
-  html, body {
-    overflow-x: hidden;
+  body {
+    overflow-x: clip;
+    touch-action: pan-y;
   }
   .shell {
     display: flex !important;
     flex-direction: column !important;
     min-height: 100vh;
-    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    touch-action: pan-y;
+  }
+  .encycdetailwrap {
+    width: 100% !important;
+    overflow: visible !important;
+  }
+  .encycdetail {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    scrollbar-width: auto !important;
+    touch-action: pan-y !important;
   }
   .sidebar {
     height: auto !important;
