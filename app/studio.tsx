@@ -6,7 +6,7 @@ import type {DrillTrack} from './content';
 import {sharpActions,sharpRubric,rubricLevels,sharpModes,critiqueSprints,critiqueQuestions,constraintCards,metricsReps,metricsKindMeta,synthesisDrills,summaryLevels,summaryFaults,crossExamQuestions,a11yCases,a11yCategories,autopsyCases,riskLenses,weeklyRhythm,rhythmForDate,modeById,sundayRevision} from './sharpness';
 import type {SharpModeId,RubricLevel,RiskLens} from './sharpness';
 import {putShot,getShot,delShot,downscaleImage} from '../lib/shots';
-import {getSahayakPrompts,evaluateSahayakReflection} from './sahayak';
+import {getSahayakPrompts,evaluateSahayakReflection,getTopicSuggestions,getInitialSahayakMessage} from './sahayak';
 import type {SahayakDialecticMode,SahayakMessage} from './sahayak';
 type Entries=Record<string,any>;
 // Critique Library — metadata travels through the normal entries store;
@@ -106,33 +106,37 @@ export default function Studio(){
     setSahayakTopicId(topicId);
     setSahayakMode(initialMode);
     setSahayakOpen(true);
-    const prompts=getSahayakPrompts(topicId);
-    const initialQuestion=initialMode==='bridge'?prompts.bridge:initialMode==='counter'?prompts.counter:prompts.defense;
     try{
       const saved=localStorage.getItem(`sahayak_chat_${topicId}`);
       if(saved){
         setSahayakChat(JSON.parse(saved));
       }else{
-        const initialMsg:SahayakMessage={
-          id:`sahayak_init_${Date.now()}`,
-          role:'sahayak',
-          content:initialQuestion,
-          mode:initialMode,
-          timestamp:Date.now(),
-          pramanaTag:initialMode==='bridge'?'उपमान (Upamana)':initialMode==='counter'?'अनुमान (Anumana)':'प्रत्यक्ष (Pratyaksha)'
-        };
-        setSahayakChat([initialMsg]);
+        const welcomeMsg=getInitialSahayakMessage(topicId,initialMode);
+        setSahayakChat([welcomeMsg]);
       }
     }catch{
-      setSahayakChat([{
-        id:`sahayak_init_${Date.now()}`,
-        role:'sahayak',
-        content:initialQuestion,
-        mode:initialMode,
-        timestamp:Date.now(),
-        pramanaTag:'उपमान (Upamana)'
-      }]);
+      setSahayakChat([getInitialSahayakMessage(topicId,initialMode)]);
     }
+  }
+
+  function handleStarterClick(starterText:string){
+    const userMsg:SahayakMessage={
+      id:`user_${Date.now()}`,
+      role:'user',
+      content:starterText,
+      mode:sahayakMode,
+      timestamp:Date.now()
+    };
+    const evalMsg=evaluateSahayakReflection(sahayakTopicId,starterText,sahayakMode);
+    const nextChat=[...sahayakChat,userMsg,evalMsg];
+    setSahayakChat(nextChat);
+    setSahayakInput('');
+    try{
+      localStorage.setItem(`sahayak_chat_${sahayakTopicId}`,JSON.stringify(nextChat));
+    }catch{}
+    setTimeout(()=>{
+      sahayakChatRef.current?.scrollTo({top:sahayakChatRef.current.scrollHeight,behavior:'smooth'});
+    },50);
   }
 
   function switchSahayakMode(newMode:SahayakDialecticMode){
@@ -179,16 +183,8 @@ export default function Studio(){
   }
 
   function clearSahayakChat(){
-    const prompts=getSahayakPrompts(sahayakTopicId);
-    const initialMsg:SahayakMessage={
-      id:`sahayak_init_${Date.now()}`,
-      role:'sahayak',
-      content:prompts[sahayakMode==='custom'?'bridge':sahayakMode],
-      mode:sahayakMode,
-      timestamp:Date.now(),
-      pramanaTag:'उपमान (Upamana)'
-    };
-    setSahayakChat([initialMsg]);
+    const welcomeMsg=getInitialSahayakMessage(sahayakTopicId,sahayakMode);
+    setSahayakChat([welcomeMsg]);
     try{localStorage.removeItem(`sahayak_chat_${sahayakTopicId}`);}catch{}
   }
 
@@ -1169,9 +1165,9 @@ export default function Studio(){
             <div>
               <div className="sahayak-badge-row">
                 <h2>Studio Sahayak <span className="sahayak-devanagari">स्टूडियो सहायक</span></h2>
-                <span className="sahayak-tag">Kashi Lineage</span>
+                
               </div>
-              <p className="sahayak-tagline">Socratic Design Sparring · Epistemological Inquiry</p>
+              <p className="sahayak-tagline">Socratic Design Sparring · Practice thinking, not memorizing</p>
             </div>
           </div>
           <button 
@@ -1260,6 +1256,27 @@ export default function Studio(){
           ))}
         </div>
 
+        {(()=>{
+          const activeTopic=uxEncyclopedia.find(t=>t.id===sahayakTopicId)||doseTopic;
+          const suggestions=getTopicSuggestions(activeTopic.id);
+          return(
+            <div className="sahayak-quick-starters" role="region" aria-label="Suggested discussion starters">
+              <span className="starter-label">Try asking or exploring:</span>
+              <div className="starter-chips">
+                {suggestions.map((sugg,i)=>(
+                  <button 
+                    key={i} 
+                    type="button" 
+                    className="starter-chip" 
+                    onClick={()=>handleStarterClick(sugg)}
+                  >
+                    {sugg}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         <div className="sahayak-input-box">
           <textarea
             rows={2}

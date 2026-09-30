@@ -19,6 +19,11 @@ export interface SahayakTopicPrompt {
 
 // Curated Socratic prompt pairings for flagship Wisdom Mirror topics
 const CURATED_PROMPTS: Record<string, SahayakTopicPrompt> = {
+  'problem-framing': {
+    bridge: 'The Upanishadic method of "Neti Neti" (Not this, not this) finds the absolute truth by negating what is false. When you scoped this design problem, what three tempting solutions did you explicitly reject to define the true problem boundary?',
+    counter: 'Purva-Paksha challenge: You claim you framed the "real" user problem through qualitative research. But what if your interviewees suffered from social desirability bias? What contradictory signal in telemetry data did your problem frame ignore?',
+    defense: '30-second framing defense: Frame the core problem of this project in two sentences without mentioning a single UI component, wireframe, or tool. Speak only of human friction and operational failure.'
+  },
   'findability': {
     bridge: 'Rig Veda 1.89 asks us to welcome noble thoughts from all directions without prejudice. In search architecture, users bring fractured queries, typos, and fuzzy memories. How does your interface welcome every messy query with openness, while still presenting results with strict hierarchical order?',
     counter: 'Purva-Paksha challenge: You made search prominent and global. But in high-velocity operational workflows (like Chiti Console or order tracking), relying on search forces the user into recall rather than recognition. When does search become a lazy replacement for good navigation taxonomy?',
@@ -28,11 +33,6 @@ const CURATED_PROMPTS: Record<string, SahayakTopicPrompt> = {
     bridge: 'Bhagavad Gita 2.47 warns against attachment to the fruit (the feature). Users do not want your dashboard; they want the peace of mind that nothing is burning. Which part of your interface exists solely because the team loved building it, rather than serving the user’s true job?',
     counter: 'Purva-Paksha challenge: You simplified the flow to satisfy the primary "job". What happens to the secondary job—like compliance audits, dispute exports, or edge-case cancellations? Did you make the common path 10% faster by making the rare path 200% harder?',
     defense: 'Executive grill: Walk me through the single biggest feature you killed or refused to build because it didn’t serve the core JTBD. What was the internal pushback, and what metric proved you right?'
-  },
-  'problem-framing': {
-    bridge: 'The Upanishadic method of "Neti Neti" (Not this, not this) finds the absolute truth by negating what is false. When you scoped this design problem, what three tempting solutions did you explicitly reject to define the true problem boundary?',
-    counter: 'Purva-Paksha challenge: You claim you framed the "real" user problem through qualitative research. But what if your interviewees suffered from social desirability bias? What contradictory signal in telemetry data did your problem frame ignore?',
-    defense: '30-second framing defense: Frame the core problem of this project in two sentences without mentioning a single UI component, wireframe, or tool. Speak only of human friction and operational failure.'
   },
   'three-ways': {
     bridge: 'Zen Shoshin (Beginner’s Mind) reminds us that expertise closes doors. Before you committed to your current screen structure, what was the radical "impossible" concept you explored and abandoned? What kernel of truth did it contain?',
@@ -67,6 +67,96 @@ const CURATED_PROMPTS: Record<string, SahayakTopicPrompt> = {
 };
 
 /**
+ * Clickable starter chips tailored to the active topic.
+ */
+export function getTopicSuggestions(topicId: string): string[] {
+  const specific: Record<string, string[]> = {
+    'problem-framing': [
+      '💡 Explain "Not this, not this" in plain UX terms',
+      '🏢 Give a real example from Chiti Console or Apple',
+      '⚔️ Challenge my team: what if our framing is wrong?',
+      '🎙️ How do I defend this in an interview in 30s?'
+    ],
+    'findability': [
+      '💡 How does Rig Veda 1.89 translate to search UX?',
+      '🏢 When does search become a lazy crutch in an ERP?',
+      '⚔️ Challenge: what if power users hate search?',
+      '🎙️ How do I defend my navigation hierarchy?'
+    ],
+    'jtbd': [
+      '💡 How does Gita 2.47 apply to feature requests?',
+      '🏢 How do I kill a feature the stakeholders love?',
+      '⚔️ Challenge: what about secondary edge-case jobs?',
+      '🎙️ 30s defense: articulate the core user job'
+    ],
+    'three-ways': [
+      '💡 What does Zen Beginner\'s Mind mean in Figma?',
+      '🏢 How do I prevent Frankenstein design compromise?',
+      '⚔️ Challenge: why not just build Option A?',
+      '🎙️ 30s pitch: defend the chosen design direction'
+    ],
+    'progressive-disclosure': [
+      '💡 How does Indian classical raga apply to complex UI?',
+      '🏢 Where does "clean UI" hurt daily operators?',
+      '⚔️ Challenge: did we hide critical emergency tools?',
+      '🎙️ How do I defend our drawer/accordion threshold?'
+    ],
+    'dark-patterns': [
+      '💡 How does Patanjali\'s Ahimsa apply to churn flows?',
+      '🏢 How do I push back against deceptive KPI pressure?',
+      '⚔️ Challenge: isn\'t all marketing persuasive friction?',
+      '🎙️ 30s ethical defense: defending user dignity'
+    ],
+    'cognitive-load': [
+      '💡 How does Buddha\'s tuned lute metaphor apply to UX?',
+      '🏢 Did we trade visual clutter for mental gymnastics?',
+      '⚔️ Challenge: why not show all data on one screen?',
+      '🎙️ 30s defense: how this UI prevents operator burnout'
+    ]
+  };
+
+  if (specific[topicId]) {
+    return specific[topicId];
+  }
+
+  const topic = uxEncyclopedia.find(t => t.id === topicId);
+  const title = topic?.title || 'this principle';
+
+  return [
+    `💡 Explain ${title} in simple design terms`,
+    `🏢 Give a real-world example from enterprise software`,
+    `⚔️ Challenge my team\'s assumptions on this`,
+    `🎙️ How do I defend ${title} in an executive interview?`
+  ];
+}
+
+/**
+ * Returns a warm, guiding initial message when Sahayak is opened.
+ */
+export function getInitialSahayakMessage(topicId: string, mode: SahayakDialecticMode = 'bridge'): SahayakMessage {
+  const topic = uxEncyclopedia.find(t => t.id === topicId);
+  const wisdom = wisdomMirrors[topicId];
+  const title = topic?.title || 'This Principle';
+
+  let greeting = `Namaste Prabhakar. I am your Socratic design companion for **${title}**.`;
+
+  if (wisdom) {
+    greeting += `\n\nWe explore this through **${wisdom.source}** (“*${wisdom.verse}*”).`;
+  }
+
+  greeting += `\n\n**How we can spar:**\n• **Understand**: Tap a question below to see how this ancient principle solves modern UI tensions.\n• **Challenge (Purva-Paksha)**: Tell me your current design decision, and I will poke holes in its trade-offs.\n• **Interview Defense**: Rehearse your 30-second rationale, and I will critique your evidence and conviction.\n\n*Tap any quick starter below to begin, or type a design question you\'re wrestling with!*`;
+
+  return {
+    id: `sahayak_welcome_${Date.now()}`,
+    role: 'sahayak',
+    content: greeting,
+    mode,
+    timestamp: Date.now(),
+    pramanaTag: 'उपमान (Upamana)'
+  };
+}
+
+/**
  * Dynamically synthesizes Socratic prompts for any topic in the encyclopedia.
  */
 export function getSahayakPrompts(topicId: string): SahayakTopicPrompt {
@@ -85,7 +175,6 @@ export function getSahayakPrompts(topicId: string): SahayakTopicPrompt {
     };
   }
 
-  // Fallback for topics without explicit wisdom mirrors
   const model = topic?.mentalModel || 'this principle';
   const trap = topic?.commonTraps ? topic.commonTraps.split(' ~ ')[0] : 'over-complication';
 
@@ -97,8 +186,7 @@ export function getSahayakPrompts(topicId: string): SahayakTopicPrompt {
 }
 
 /**
- * Intelligent, Socratic evaluation of the user's reflection / defense.
- * Checks for the presence of the 4 Pramanas (Direct perception, inference, metaphor, standard/constraint).
+ * Intelligent, intent-driven conversational response generator.
  */
 export function evaluateSahayakReflection(
   topicId: string,
@@ -109,48 +197,183 @@ export function evaluateSahayakReflection(
   const lower = trimmed.toLowerCase();
   const topic = uxEncyclopedia.find(t => t.id === topicId);
   const wisdom = wisdomMirrors[topicId];
+  const title = topic?.title || 'This Principle';
 
-  // Heuristic analysis of the user's argument
+  // ── INTENT 1: User asks for help, orientation, or greetings ────────────────
+  const isHelpQuery = /^(hi|hello|hey|namaste|help|what can you do|how can you help|what should i type|how to use|what is this|guide me|confused|start)/i.test(lower);
+  if (isHelpQuery) {
+    const helpContent = `I am your Socratic design sparring partner. Instead of giving you textbook summaries to memorize, I help you think through design decisions like a principal designer.
+
+**3 practical ways to talk with me:**
+1. **Explain the Philosophy**: Ask me *"What does this verse mean in UI?"* or *"Give me a real-world example."*
+2. **Stress-Test Your Design (Purva-Paksha)**: Tell me what you're designing (e.g. *"I\'m putting all filters into a modal to keep the table clean"*), and I will critique the hidden downside for power users or accessibility.
+3. **Practice Interview Defense**: Tell me how you'd defend this principle to a VP or PM in 30 seconds, and I'll grade your clarity and evidence.
+
+Try tapping one of the quick suggestion buttons below to see how it works!`;
+
+    return {
+      id: `sahayak_${Date.now()}`,
+      role: 'sahayak',
+      content: helpContent,
+      mode,
+      timestamp: Date.now(),
+      pramanaTag: 'उपमान (Upamana)'
+    };
+  }
+
+  // ── INTENT 2: User asks to explain the principle or verse ──────────────────
+  const isExplainQuery = /(explain|what does .* mean|meaning|tell me more|simplify|understand|break down|philosophy)/i.test(lower);
+  if (isExplainQuery) {
+    let explanation = '';
+    if (topicId === 'problem-framing') {
+      explanation = `In the Upanishads, **"Neti Neti" (Not this, not this)** is the practice of finding truth by negating illusions and secondary distractions.
+
+In product design, junior teams define a problem by immediately describing a feature: *"The problem is users need a customizable analytics dashboard with filters."*
+
+A senior designer uses **Neti Neti**:
+• It is **not** that users lack charts.
+• It is **not** that the export button is small.
+• The real problem is: *Operations leads cannot detect which 3 shipments are delayed until a customer files a dispute.*
+
+By deliberately saying *"Not this"* to tempting feature ideas, the boundary of the real human problem becomes sharp.
+
+**Your turn**: In your current project, what is one tempting feature that everyone wants to build, but that you should say *"Not this"* to?`;
+    } else if (wisdom) {
+      explanation = `**${wisdom.source}** gives us: *“${wisdom.verse}”*
+
+${wisdom.parallel}
+
+In modern interfaces, this means distinguishing between superficial aesthetics and functional truth. 
+
+**Your turn**: Where in your current product are you tempted to polish the surface instead of solving the fundamental underlying friction?`;
+    } else {
+      explanation = `**${title}** anchors on the mental model: *“${topic?.mentalModel || 'clarity over clutter'}”*.
+
+Most teams fall into the trap of *“${topic?.commonTraps.split(' ~ ')[0] || 'adding unnecessary complexity'}”*.
+
+When you design with senior restraint, you eliminate the noise so the user\'s primary job becomes effortless.
+
+**Your turn**: If you had to remove 30% of the visual elements from your current screen, what would you cut first without harming the user\'s task?`;
+    }
+
+    return {
+      id: `sahayak_${Date.now()}`,
+      role: 'sahayak',
+      content: explanation,
+      mode,
+      timestamp: Date.now(),
+      pramanaTag: 'उपमान (Upamana)'
+    };
+  }
+
+  // ── INTENT 3: User asks for real-world examples ────────────────────────────
+  const isExampleQuery = /(example|real world|chiti console|apple|google|enterprise|case study|scenario)/i.test(lower);
+  if (isExampleQuery) {
+    let exampleContent = '';
+    if (topicId === 'problem-framing') {
+      exampleContent = `Here is a real example from high-velocity operational software like **Chiti Console** or hospital dispatch:
+
+• **Novice framing**: *"Build an AI-powered conversational bot to answer patient status queries."* (Result: 6 months of development, hallucinated answers, frustrated staff).
+• **Senior Neti-Neti framing**: *"The problem is NOT lack of AI chat. It is that receptionists pick up 120 calls an hour asking a single binary question: Is the doctor running late?"*
+
+The solution? Not a chat bot—a high-contrast, real-time status board visible in the waiting hall and a 1-line SMS trigger. Cost: 2 days of engineering. Patient anxiety dropped by 80%.
+
+**Notice the difference**: Neti Neti stripped away the AI vanity and solved the human bottleneck. Where is your team tempted to build a complex feature instead of solving the simple operational bottleneck?`;
+    } else if (topic?.realWorldExample) {
+      exampleContent = `**Real-World Case Study**: ${topic.realWorldExample}
+
+Notice how in this scenario, the difference between success and failure was not visual polish—it was operational integrity.
+
+**How about your work?** Where does this exact dynamic show up in your current project or portfolio story?`;
+    } else {
+      exampleContent = `Consider an enterprise dashboard with 50,000 transactions:
+If you give operators 20 filters and 5 graphs, cognitive load explodes. But if you frame the view around exceptions (orders requiring attention today), they complete their morning run in 15 minutes.
+
+What is the single most critical exception an operator must catch on your screen?`;
+    }
+
+    return {
+      id: `sahayak_${Date.now()}`,
+      role: 'sahayak',
+      content: exampleContent,
+      mode,
+      timestamp: Date.now(),
+      pramanaTag: 'प्रत्यक्ष (Pratyaksha)'
+    };
+  }
+
+  // ── INTENT 4: User asks for Purva-Paksha / Counter-Challenge ───────────────
+  const isChallengeQuery = /(challenge|poke holes|counter|critique|what is wrong|pushback|stakeholder|disagree)/i.test(lower);
+  if (isChallengeQuery) {
+    const prompts = getSahayakPrompts(topicId);
+    return {
+      id: `sahayak_${Date.now()}`,
+      role: 'sahayak',
+      content: `**Purva-Paksha Counter-Challenge**:\n\n${prompts.counter}\n\nHow do you answer this objection without falling back on subjective designer taste?`,
+      mode: 'counter',
+      timestamp: Date.now(),
+      pramanaTag: 'अनुमान (Anumana)'
+    };
+  }
+
+  // ── INTENT 5: User asks how to defend in an interview ──────────────────────
+  const isInterviewQuery = /(interview|defend|pitch|30s|executive|vp|director|explain in 30)/i.test(lower);
+  if (isInterviewQuery) {
+    const interviewGuide = `When an executive or Design Director asks you about **${title}**, they are not checking if you memorized definitions. They want to hear **trade-off discipline**.
+
+**The 3-Part Senior Defense Spine:**
+1. **The Trap (10s)**: *"Most teams approach ${title} by adding features or copying competitors..."*
+2. **Your Decision (10s)**: *"Instead, I framed the boundary around [the core user job/friction] and deliberately excluded [tempting distraction]..."*
+3. **The Proof (10s)**: *"This protected operational velocity and reduced [error rate/latency] by [metric]."*
+
+Type or speak your 30-second version now. I will critique your structure, conviction, and evidence!`;
+
+    return {
+      id: `sahayak_${Date.now()}`,
+      role: 'sahayak',
+      content: interviewGuide,
+      mode: 'defense',
+      timestamp: Date.now(),
+      pramanaTag: 'शब्द (Shabda)'
+    };
+  }
+
+  // ── INTENT 6: User entered their actual reflection / defense ───────────────
   const hasPratyaksha = /data|metric|telemetry|user|interview|session|observed|saw|tested|click|analytics|log|dropoff/i.test(lower);
   const hasAnumana = /because|trade-off|tradeoff|therefore|friction|cognitive|mental|reason|downside|sacrifice|balance/i.test(lower);
-  const hasUpamana = /like|similar|analog|mirror|verse|gita|ved|sutra|metaphor|compare|raga|alapana/i.test(lower);
-  const hasShabda = /wcag|aaa|contrast|heuristic|norman|rams|standard|guideline|latency|sla|security|compliance/i.test(lower);
 
-  // Assign primary Pramana used by user or needed by Sahayak
   let pramana: 'प्रत्यक्ष (Pratyaksha)' | 'अनुमान (Anumana)' | 'उपमान (Upamana)' | 'शब्द (Shabda)' = 'अनुमान (Anumana)';
   let critique = '';
   let followUp = '';
 
-  if (trimmed.length < 25) {
+  if (trimmed.length < 20) {
     pramana = 'प्रत्यक्ष (Pratyaksha)';
-    critique = 'You touched the surface, but a one-line assertion does not reveal the architectural trade-off.';
-    followUp = 'Ground your thinking in a concrete screen: when an operator or user makes a mistake here, what exact element or feedback saves them?';
+    critique = 'You touched on the thought, but to sharpen your defense, we need more flesh on the bone.';
+    followUp = 'Which specific screen or workflow in your product are you thinking of? When a user makes an error there, what happens?';
   } else if (!hasPratyaksha && (mode === 'defense' || mode === 'counter')) {
     pramana = 'प्रत्यक्ष (Pratyaksha)';
-    critique = 'Your conceptual reasoning is sound, but in an executive review, philosophy without empirical evidence sounds like subjective taste.';
-    followUp = 'What observable signal (a completion rate, error log, or recorded user hesitation) would prove to your team that this decision worked?';
+    critique = 'Your conceptual reasoning is clear, but in an executive review, philosophy without empirical evidence sounds like personal taste.';
+    followUp = 'What observable signal (a completion rate, error log, or recorded user hesitation) would prove to your team that this decision was correct?';
   } else if (!hasAnumana) {
     pramana = 'अनुमान (Anumana)';
     critique = 'You described what the screen does, but you skipped the dialectical tension—every design choice sacrifices something.';
     followUp = 'What did you deliberately give up (speed, density, visual simplicity, or engineering effort) to achieve this result?';
   } else if (hasPratyaksha && hasAnumana) {
     pramana = 'शब्द (Shabda)';
-    critique = 'Strong synthesis. You paired empirical awareness with logical trade-off analysis.';
+    critique = 'Excellent synthesis. You paired empirical awareness with logical trade-off analysis.';
     followUp = wisdom
-      ? `Now close the loop with ${wisdom.source}: Does this design choice liberate the user from unnecessary friction, or does it demand constant cognitive vigilance?`
+      ? `Now close the loop with ${wisdom.source}: Does this design choice truly liberate the user from cognitive friction, or does it demand constant vigilance?`
       : 'What happens when an accessibility screen-reader user or keyboard-only operator attempts this exact flow?';
   } else {
     pramana = 'उपमान (Upamana)';
-    critique = 'You have identified the core principle, but let us test its durability under stress.';
+    critique = 'You have identified the core principle. Now let us test its durability under stress.';
     followUp = 'If your active user base multiplied tenfold tomorrow, where is the first seam where this mental model begins to tear?';
   }
-
-  const content = `${critique}\n\n${followUp}`;
 
   return {
     id: `sahayak_${Date.now()}`,
     role: 'sahayak',
-    content,
+    content: `${critique}\n\n${followUp}`,
     mode,
     timestamp: Date.now(),
     pramanaTag: pramana

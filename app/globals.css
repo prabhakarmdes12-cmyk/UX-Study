@@ -1512,3 +1512,79 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
     display: none;
   }
 }
+
+
+/* ── Sahayak User Bubble WCAG AAA Contrast Fix ─────────────────────────────── */
+.sahayak-user .sahayak-msg-bubble {
+  background: #172554 !important;
+  color: #ffffff !important;
+  border: 1px solid #1e3a8a !important;
+}
+.sahayak-user .sahayak-msg-bubble p,
+.sahayak-user .sahayak-msg-bubble .msg-text,
+.sahayak-user .sahayak-msg-bubble span {
+  color: #ffffff !important;
+}
+.sahayak-user .msg-time {
+  color: #bfdbfe !important;
+}
+
+/* ── Sahayak Quick Starter Chips ───────────────────────────────────────────── */
+.sahayak-quick-starters {
+  padding: 10px 18px 0;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+.starter-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.starter-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.starter-chip {
+  text-align: left;
+  background: #f1f5f9;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.starter-chip:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+.starter-chip:focus-visible {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* High contrast mode for starter chips */
+.a11y-contrast .starter-chip {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .starter-chip:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
