@@ -550,3 +550,122 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .a11y-contrast .drilltimer * {
   color: #000000 !important;
 }
+
+
+/* ── Sharpness Lab (#sharp) ───────────────────────────────────────────────── */
+.sharpframe{border-top:3px solid #4359df}
+.actionstrip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:6px 0 16px}
+.actioncard{position:relative;background:#f7f8fd;border:1px solid #e1e6f5;border-radius:11px;padding:16px 14px 14px}
+.actionnum{position:absolute;top:-9px;left:14px;width:22px;height:22px;border-radius:50%;background:#3448dc;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
+.actioncard strong{display:block;font-family:Manrope,sans-serif;font-size:15px;color:#1d2a40;margin-top:4px}
+.actioncard em{display:block;font-style:normal;font-size:12.5px;font-weight:700;color:#3d52c9;margin:3px 0 8px}
+.actioncard p{font-size:12.5px;line-height:1.55;color:#37455d;margin:0}
+.actiongood,.actionbad{display:flex;gap:6px;align-items:flex-start;margin-top:9px!important;font-size:12px!important;border-top:1px solid #e4e8f4;padding-top:8px}
+.actiongood svg{color:#166e43;flex-shrink:0;margin-top:2px}
+.actionbad svg{color:#a0410f;flex-shrink:0;margin-top:2px}
+.actionmini{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.actionmini span{font-size:11px;font-weight:700;letter-spacing:.5px;color:#3d52c9;background:#eef1fc;border-radius:5px;padding:4px 8px;text-transform:uppercase}
+.rhythmcard{border-top:3px solid #afbbea}
+.rhythmrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.rhythmday{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f7f8fc;border:1px solid #e3e8f2;border-radius:10px;padding:11px 6px;color:#3f4e66;min-height:64px}
+.rhythmday span{font-family:Manrope,sans-serif;font-weight:800;font-size:13px}
+.rhythmday small{font-size:10.5px;font-weight:600;color:#4c5a74;line-height:1.3;text-align:center}
+.rhythmday.today{border-color:#4359df;box-shadow:0 0 0 2px #4359df33}
+.rhythmday.done{background:#e2f3e9;border-color:#bfe3cf;color:#155e39}
+.rhythmday.done small{color:#155e39}
+.rhythmday svg{color:#166e43}
+.modecard{border-top:3px solid #3448dc}
+.drillsteps{padding-left:20px;margin:6px 0 4px;font-size:14.5px;color:#37455d;line-height:1.6}
+.drillsteps li{margin-bottom:8px}
+.signalbox{background:#172554;color:#fff;border-radius:12px;padding:18px 20px;margin:18px 0}
+.signalbox>span{display:block;font-size:11px;letter-spacing:1.8px;color:#93c5fd;font-weight:800}
+.signalbox ul{margin:10px 0 0;padding-left:20px}
+.signalbox li{font-size:14px;line-height:1.65;color:#fff;margin-bottom:7px}
+.signalbox li:last-child{margin-bottom:0}
+.revealbox{background:#f5f7fb;border:1px solid #dfe5f1;border-left:3px solid #4359df;border-radius:10px;padding:18px 20px;margin-top:20px}
+.revealbox h3{margin-top:0}
+.revealbox p{font-size:14.5px;line-height:1.7;color:#2f3e58}
+.revealbox p:last-of-type{margin-bottom:0}
+.trapline{display:flex;gap:8px;align-items:flex-start;background:#fffaf1;border:1px solid #ecd9ab;border-radius:9px;padding:12px 14px;font-size:13.5px;color:#7a4f10;margin:14px 0 0}
+.trapline svg{flex-shrink:0;margin-top:3px}
+.methodline{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#3f4e66;background:#f5f7fb;border-radius:8px;padding:11px 13px}
+.methodline svg{flex-shrink:0;margin-top:2px}
+.constraintcard{border-top:3px solid #d0a149}
+.synthlist{list-style:none;padding:0;margin:8px 0 18px;display:grid;gap:10px}
+.synthlist li{background:#fff;border:1px solid #e1e6ed;border-radius:11px;padding:14px 16px;display:grid;gap:10px}
+.synthlist li p{margin:0;font-size:14.5px;line-height:1.6;color:#27364e}
+.synthlist li.right{border-color:#bfe3cf;background:#f4fbf7}
+.synthlist li.wrong{border-color:#eec9a6;background:#fffaf3}
+.synthwhy{font-size:12.5px!important;color:#4b5a74!important}
+.synthlist .segmented{align-self:start}
+.sumlevel{border-top:1px solid #e7ebf2;padding-top:18px;margin-top:20px}
+.sumlevel:first-of-type{border-top:0;padding-top:0}
+.sumlevel h3{margin:0}
+.questioncard{background:#f5f7fb;border-radius:12px;padding:20px 22px;margin:4px 0 18px;border-left:3px solid #4359df}
+.questioncard .prompt{font-size:22px;margin:14px 0 10px}
+.evidencebox{background:#fff;border:1px solid #cde8d8;border-left:3px solid #1d8a54;border-radius:10px;padding:16px 18px;margin-bottom:6px}
+.evidencebox>span{display:block;font-size:10.5px;letter-spacing:1.4px;font-weight:800;color:#166e43;margin-bottom:8px}
+.evidencebox p{font-size:14px;line-height:1.7;color:#2f3e58;margin:0 0 8px}
+.evidencebox.empty{border-color:#eddaaf;border-left-color:#c08a2b;background:#fffaf1}
+.evidencebox.empty>span{color:#8a5208}
+.defectlist{list-style:none;padding:0;margin:10px 0 14px;display:grid;gap:12px}
+.defectlist li{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid #e1e6ed;border-radius:11px;padding:15px 17px}
+.defectlist li.sev-blocker{border-left:3px solid #b3261e}
+.defectlist li.sev-major{border-left:3px solid #c08a2b}
+.defectlist li.sev-minor{border-left:3px solid #9aa4b8}
+.defectlist .checkbutton{margin-top:3px}
+.defectlist .cardmeta{justify-content:flex-start;gap:8px;margin-bottom:8px}
+.defsymptom{font-size:14.5px;line-height:1.6;color:#1d2a40;font-weight:600;margin:0 0 8px}
+.defectlist .tcsum{margin:0 0 6px}
+.s-block{background:#fdeceb;color:#8c1d18;text-transform:uppercase;letter-spacing:.5px}
+.statusbadge.s-rev,.statusbadge.s-new{text-transform:uppercase;letter-spacing:.5px}
+.repairpick{display:grid;gap:8px;margin-bottom:6px}
+.repairpick button{background:#fff;border:1px solid #dfe4ee;color:#3f4e68;text-align:left;justify-content:flex-start;font-size:13.5px;font-weight:600;padding:12px 15px;min-height:44px}
+.repairpick button.chosen{background:#eef1ff;border-color:#4359df;color:#28387f}
+.lensgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:6px 0 20px}
+.lensbtn{display:flex;flex-direction:column;align-items:flex-start;gap:5px;background:#fff;border:1px solid #dfe4ee;border-radius:11px;padding:14px;color:#3f4e68;text-align:left;min-height:110px}
+.lensbtn strong{font-family:Manrope,sans-serif;font-size:14px;color:#1d2a40}
+.lensbtn small{font-size:11.5px;line-height:1.5;color:#4b5a74;font-weight:400}
+.lensbtn.chosen{background:#eef1ff;border-color:#4359df;box-shadow:0 0 0 2px #4359df33}
+.lensbtn.chosen strong,.lensbtn.chosen small{color:#28387f}
+.rubricpanel{border-top:3px solid #1d8a54}
+.rubricrow{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #eef0f5;padding:14px 0}
+.rubricrow:last-of-type{border-bottom:0}
+.rubriclabel strong{display:block;font-size:14.5px;color:#1d2a40}
+.rubriclabel small{display:block;font-size:12.5px;color:#4b5a74;margin-top:3px;max-width:56ch}
+.repairbox{background:#f2fbf5;border:1px solid #cde8d8;border-radius:11px;padding:16px 18px;margin:18px 0 4px}
+.repairbox strong{display:block;font-family:Manrope,sans-serif;font-size:15px;color:#155e39;margin-bottom:7px}
+.repairbox p{font-size:13.5px;line-height:1.65;color:#2f4a3b;margin:0 0 6px;display:flex;gap:7px;align-items:flex-start}
+.repairbox p:last-child{margin-bottom:0}
+.repairbox svg{flex-shrink:0;margin-top:3px}
+.sharptoday{border-top:3px solid #3448dc}
+.libpanel{border-top:3px solid #6c7db7}
+.libform{background:#f7f8fc;border:1px solid #e6eaf4;border-radius:12px;padding:18px;margin-bottom:20px}
+.libform .formgrid{margin-bottom:14px}
+.libform label{display:block;font-size:14px;color:#47546a;font-weight:600}
+.shotlabel{display:flex!important;gap:7px;align-items:center;margin-top:14px}
+.libform input[type=file]{margin-top:7px;font-size:13px;padding:10px 12px;background:#fff;border:1px dashed #b9c3e8;border-radius:8px}
+.libform .actions{margin-top:16px}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.libcard{background:#fff;border:1px solid #e1e6ed;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.libcard img{width:100%;height:150px;object-fit:cover;object-position:top;border-bottom:1px solid #e8ecf4;background:#f1f3f8}
+.libbody{padding:14px;display:flex;flex-direction:column;gap:8px}
+.libbody .domtag{align-self:flex-start}
+.libbody details{font-size:13px;color:#3f4e66}
+.libbody summary{cursor:pointer;font-weight:600;color:#3f53c0;padding:4px 0;min-height:32px}
+.libbody .cleanlist{font-size:13px;margin-top:8px;padding-left:18px}
+.libbody .cleanlist li{margin-bottom:9px}
+@media(max-width:1150px){.actionstrip{grid-template-columns:repeat(3,minmax(0,1fr))}.lensgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.actionstrip{grid-template-columns:repeat(2,minmax(0,1fr))}.rubricrow{display:block}.rubricrow .segmented{margin-top:12px;display:flex;width:100%}.rubricrow .segmented button{flex:1}}
+@media(max-width:650px){.actionstrip,.lensgrid{grid-template-columns:1fr}.rhythmrow{grid-template-columns:repeat(4,minmax(0,1fr))}.questioncard .prompt{font-size:19px}.defectlist li{padding:13px}.libgrid{grid-template-columns:1fr}}
+
+/* High-contrast mode: the lab must obey the toolbar the studio teaches */
+.a11y-contrast .signalbox{background:#fff!important;color:#000!important;border:2.5px solid #000!important}
+.a11y-contrast .signalbox *{color:#000!important}
+.a11y-contrast .signalbox>span{font-weight:900!important;letter-spacing:2px!important}
+.a11y-contrast .actioncard,.a11y-contrast .revealbox,.a11y-contrast .repairbox,.a11y-contrast .evidencebox,.a11y-contrast .questioncard,.a11y-contrast .methodline,.a11y-contrast .trapline,.a11y-contrast .libform{background:#fff!important;border:2px solid #000!important;color:#000!important}
+.a11y-contrast .actioncard em,.a11y-contrast .actionmini span,.a11y-contrast .lensbtn strong,.a11y-contrast .lensbtn small,.a11y-contrast .rubriclabel small,.a11y-contrast .revealbox p,.a11y-contrast .trapline,.a11y-contrast .evidencebox p{color:#000!important}
+.a11y-contrast .actionnum{background:#000!important;color:#fff!important}
+.a11y-contrast .rhythmday,.a11y-contrast .lensbtn,.a11y-contrast .repairpick button{border:2px solid #000!important;color:#000!important;background:#fff!important}
+.a11y-contrast .rhythmday.done,.a11y-contrast .rhythmday.today,.a11y-contrast .lensbtn.chosen,.a11y-contrast .repairpick button.chosen{background:#000!important;color:#fff!important}
+.a11y-contrast .rhythmday.done *,.a11y-contrast .rhythmday.today *,.a11y-contrast .lensbtn.chosen *{color:#fff!important}

@@ -1,10 +1,17 @@
 'use client';
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
-import {BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,Download,Eye,EyeOff,Flame,FlaskConical,Gauge,GraduationCap,Keyboard,LayoutDashboard,MessageCircle,Mic,Pause,PenLine,PencilRuler,Play,Plus,RotateCcw,Search,ShieldCheck,Square,Target,Timer,TrendingUp,Volume2,Wrench,Accessibility,Sparkles,KeyRound,LogOut,Lock,X,ShieldAlert,ArrowLeft,ArrowUp} from 'lucide-react';
+import {BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,Download,Eye,EyeOff,Flame,FlaskConical,Gauge,GraduationCap,Keyboard,LayoutDashboard,MessageCircle,Mic,Pause,PenLine,PencilRuler,Play,Plus,RotateCcw,Search,ShieldCheck,Square,Target,Timer,TrendingUp,Volume2,Wrench,Accessibility,Sparkles,KeyRound,LogOut,Lock,X,ShieldAlert,ArrowLeft,ArrowUp,Crosshair,ScanEye,Zap,Layers,Quote,Microscope,Upload,Trash2,Lightbulb,ListChecks,TriangleAlert,FileText,Split,Image as ImageIcon} from 'lucide-react';
 import {pilot,phases,roadmap,interruptions,behaviors,challenges,critiques,mockLoops,lessons,resources,uxDomains,uxEncyclopedia,wisdomMirrors,drillCycle} from './content';
 import type {DrillTrack} from './content';
+import {sharpActions,sharpRubric,rubricLevels,sharpModes,critiqueSprints,critiqueQuestions,constraintCards,metricsReps,metricsKindMeta,synthesisDrills,summaryLevels,summaryFaults,crossExamQuestions,a11yCases,a11yCategories,autopsyCases,riskLenses,weeklyRhythm,rhythmForDate,modeById,sundayRevision} from './sharpness';
+import type {SharpModeId,RubricLevel,RiskLens} from './sharpness';
+import {putShot,getShot,delShot,downscaleImage} from '../lib/shots';
 type Entries=Record<string,any>;
-const navigation=[['today',"Today's practice",LayoutDashboard],['speak','Speaking studio',Mic],['lab','Challenge lab',FlaskConical],['stories','My stories',BookOpen],['learn','Study & updates',BookOpen],['roadmap','60-day roadmap',CalendarDays],['review','Progress & review',TrendingUp]] as const;
+// Critique Library — metadata travels through the normal entries store;
+// the screenshot itself never leaves this device (see lib/shots.ts).
+type LibAnswer={q:string,a:string};
+type LibItem={id:string,kind:'sprint'|'wild',date:string,title:string,principle:string,note:string,surface:string,answers:LibAnswer[],hasShot:boolean};
+const navigation=[['today',"Today's practice",LayoutDashboard],['speak','Speaking studio',Mic],['lab','Challenge lab',FlaskConical],['sharp','Sharpness Lab',Crosshair],['stories','My stories',BookOpen],['learn','Study & updates',BookOpen],['roadmap','60-day roadmap',CalendarDays],['review','Progress & review',TrendingUp]] as const;
 const storyFields=['Product and user','Problem and why it mattered','My exact role','Evidence and assumptions','Alternatives I considered','My decision and why','Trade-off I accepted','Collaboration and disagreement','What shipped or was tested','Outcome and supporting evidence','What I cannot claim','What I would change today'];
 function download(name:string,body:Blob){const u=URL.createObjectURL(body);const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),5000);}
 function time(n:number){return `${Math.floor(n/60).toString().padStart(2,'0')}:${(n%60).toString().padStart(2,'0')}`;}
@@ -31,6 +38,10 @@ const statusStore=makeStore<StatusMap>('uxEncyStatus',emptyStatus,parseStatusMap
 const timesStore=makeStore<Record<string,string>>('uxEncyTimes',{},parseStringMap);
 const doseStore=makeStore<Record<string,string>>('uxDoseLog',{},parseStringMap);
 const drillStore=makeStore<Record<string,string>>('uxDrillLog',{},parseStringMap);
+const sharpStore=makeStore<Record<string,string>>('uxSharpLog',{},parseStringMap);
+// Sharpness Lab — one icon per practice mode, used by the mode chips and the
+// Today card. Kept beside the nav so both surfaces stay in step.
+const sharpIcons:Record<SharpModeId,typeof Mic>={critique:ScanEye,constraint:Zap,metrics:Gauge,synthesis:Layers,summary:Quote,crossexam:MessageCircle,a11yrepair:Accessibility,autopsy:Microscope};
 const trackMeta:Record<DrillTrack,{label:string,Icon:typeof Mic}>={
  sketch:{label:'Sketch',Icon:PencilRuler},
  read:{label:'Read',Icon:BookOpen},
@@ -54,6 +65,18 @@ export default function Studio(){
  const [view,setView]=useState('today'),[day,setDay]=useState(1),[short,setShort]=useState(false),[entries,setEntries]=useState<Entries>({}),[drafts,setDrafts]=useState<Entries>({}),[loaded,setLoaded]=useState(false),[error,setError]=useState(''),[signedOut,setSignedOut]=useState(false),[busy,setBusy]=useState<string[]>([]),[notice,setNotice]=useState(''),[selected,setSelected]=useState(0),[filter,setFilter]=useState('All'),[level,setLevel]=useState('All'),[story,setStory]=useState('story_first'),[activity,setActivity]=useState<any>(null),[speakPrompt,setSpeakPrompt]=useState(''),[challengeReveal,setChallengeReveal]=useState(false),[interruption,setInterruption]=useState(''),[lesson,setLesson]=useState(0),[company,setCompany]=useState('All'),[critiqueIdx,setCritiqueIdx]=useState(0),[critiqueTab,setCritiqueTab]=useState<'encyc'|'lessons'|'critiques'>('encyc'),[mockLoopId,setMockLoopId]=useState('');
  const [domain,setDomain]=useState('All'),[query,setQuery]=useState(''),[topicSel,setTopicSel]=useState(''),[saySel,setSaySel]=useState<'thirty'|'two'>('thirty'),[flashMode,setFlashMode]=useState(false),[revealed,setRevealed]=useState<Record<string,boolean>>({});
  const [drillShift,setDrillShift]=useState(0),[drillTimerLeft,setDrillTimerLeft]=useState(0),[drillTimerOn,setDrillTimerOn]=useState(false);
+ // ── Sharpness Lab state ───────────────────────────────────────────────────
+ const [sharpMode,setSharpMode]=useState<SharpModeId>(()=>{const r=rhythmForDate(anchorNow);return r.mode==='review'?'autopsy':r.mode;}),[sharpShift,setSharpShift]=useState(0),[sharpStage,setSharpStage]=useState(0),[frameOpen,setFrameOpen]=useState(false);
+ const [sharpLeft,setSharpLeft]=useState(0),[sharpOn,setSharpOn]=useState(false);
+ const [review,setReview]=useState<Record<string,RubricLevel>>({});
+ const [synthPicks,setSynthPicks]=useState<Record<string,'observation'|'interpretation'>>({}),[synthChecked,setSynthChecked]=useState(false);
+ const [lensPick,setLensPick]=useState<RiskLens|''>('');
+ const [foundDefects,setFoundDefects]=useState<Record<string,boolean>>({}),[firstRepair,setFirstRepair]=useState('');
+ const [cxStory,setCxStory]=useState('story_first'),[cxIdx,setCxIdx]=useState(0);
+ const [libTitle,setLibTitle]=useState(''),[libPrinciple,setLibPrinciple]=useState(''),[libNote,setLibNote]=useState(''),[libFile,setLibFile]=useState<File|null>(null),[libBusy,setLibBusy]=useState(false),[shotUrls,setShotUrls]=useState<Record<string,string>>({});
+ const sharpEnd=useRef(0);
+ const shotInput=useRef<HTMLInputElement|null>(null);
+ const shotUrlsRef=useRef<Record<string,string>>({});
  
   const detailRef=useRef<HTMLElement|null>(null);
   const topicGridRef=useRef<HTMLDivElement|null>(null);
@@ -180,6 +203,11 @@ export default function Studio(){
           if(k.startsWith('drill_')&&serverData[k]&&typeof serverData[k].drill==='string')rlog[k.slice(6)]=serverData[k].drill;
         }
         drillStore.write(rlog);
+        const slog={...sharpStore.read()};
+        for(const k of Object.keys(serverData)){
+          if(k.startsWith('sharp_')&&serverData[k]&&typeof serverData[k].mode==='string')slog[k.slice(6)]=serverData[k].mode;
+        }
+        sharpStore.write(slog);
       }
     }catch(e:any){
       // Cloud sync unavailable; local mode active
@@ -201,6 +229,8 @@ export default function Studio(){
  useEffect(()=>{if(!running)return;const t=setInterval(()=>setElapsed(v=>Math.min(v+1,limit)),1000);return()=>clearInterval(t)},[running,limit]);
  // Drill focus timer — wall-clock countdown so pause/resume stays honest
  useEffect(()=>{if(!drillTimerOn)return;const t=setInterval(()=>{const left=Math.round((drillTimerEnd.current-Date.now())/1000);if(left<=0){setDrillTimerLeft(0);setDrillTimerOn(false);setNotice('Focus time is up — log your drill when you are ready.');}else{setDrillTimerLeft(left);}},500);return()=>clearInterval(t);},[drillTimerOn]);
+ // Sharpness Lab rep timer — same wall-clock approach, so pausing stays honest
+ useEffect(()=>{if(!sharpOn)return;const t=setInterval(()=>{const left=Math.round((sharpEnd.current-Date.now())/1000);if(left<=0){setSharpLeft(0);setSharpOn(false);setNotice('Time. Stop writing, then mark the self-review honestly.');}else{setSharpLeft(left);}},500);return()=>clearInterval(t);},[sharpOn]);
  useEffect(()=>{if(elapsed>=limit&&running){setRunning(false);setNotice('Time is up. Finish your thought, then review.');if(recorder.current?.state==='recording')recorder.current.stop();}},[elapsed,limit,running]);
  useEffect(()=>()=>{if(recordTimeout.current)clearTimeout(recordTimeout.current);if(recorder.current?.state==='recording')recorder.current.stop();stream.current?.getTracks().forEach(t=>t.stop());},[]);
  useEffect(()=>()=>{if(audioUrl)URL.revokeObjectURL(audioUrl)},[audioUrl]);
@@ -285,6 +315,56 @@ export default function Studio(){
  function drillPause(){setDrillTimerLeft(Math.max(0,Math.round((drillTimerEnd.current-Date.now())/1000)));setDrillTimerOn(false);}
  function drillReset(){setDrillTimerOn(false);setDrillTimerLeft(0);}
  function drillNext(){setDrillShift(s=>s+1);setDrillTimerOn(false);setDrillTimerLeft(0);}
+ // ── Sharpness Lab — rotation, timer, self-review, critique library ────────
+ // Every mode draws its item from the same day-of-year rotation, so the lab is
+ // different each morning without anyone choosing. Nothing is scored; a session
+ // ends with a named weakest dimension and the drill that repairs it.
+ const sharpLog=useSyncExternalStore(sharpStore.subscribe,sharpStore.read,()=>emptyMap);
+ const todayRhythm=rhythmForDate(anchorNow);
+ const rhythmMode:SharpModeId=todayRhythm.mode==='review'?'autopsy':todayRhythm.mode;
+ const mode=modeById(sharpMode);
+ const rot=doy+sharpShift;
+ const pick=<T,>(list:T[]):T=>list[((rot%list.length)+list.length)%list.length];
+ const sprint=pick(critiqueSprints),constraintCard=pick(constraintCards),rep=pick(metricsReps),synth=pick(synthesisDrills),a11yCase=pick(a11yCases),autopsy=pick(autopsyCases),baseChallenge=pick(challenges);
+ const cxQ=crossExamQuestions[(((rot+cxIdx)%crossExamQuestions.length)+crossExamQuestions.length)%crossExamQuestions.length];
+ const sharpItemId=sharpMode==='critique'?sprint.id:sharpMode==='constraint'?`${baseChallenge.id}_${constraintCard.id}`:sharpMode==='metrics'?rep.id:sharpMode==='synthesis'?synth.id:sharpMode==='a11yrepair'?a11yCase.id:sharpMode==='autopsy'?autopsy.id:sharpMode==='crossexam'?cxQ.id:'summary';
+ const sharpWeek=(()=>{const monday=new Date(anchorNow.getTime());monday.setDate(monday.getDate()-((monday.getDay()+6)%7));return [0,1,2,3,4,5,6].map(i=>{const d=new Date(monday.getTime());d.setDate(d.getDate()+i);const ds=localDate(d);return {ds,logged:!!sharpLog[ds],isToday:ds===todayStr,plan:weeklyRhythm[i]};});})();
+ const sharpStreak=(()=>{let s=0;const d=new Date(anchorNow.getTime());if(!sharpLog[localDate(d)])d.setDate(d.getDate()-1);while(sharpLog[localDate(d)]){s++;d.setDate(d.getDate()-1);}return s;})();
+ const markedDims=sharpRubric.filter(x=>review[x.id]).length;
+ const weakest=sharpRubric.find(x=>review[x.id]==='developing')||sharpRubric.find(x=>review[x.id]==='solid')||null;
+ function resetRep(){setSharpStage(0);setSynthChecked(false);setSynthPicks({});setLensPick('');setFoundDefects({});setFirstRepair('');setSharpOn(false);setSharpLeft(0);}
+ function pickMode(id:SharpModeId){setSharpMode(id);resetRep();}
+ function sharpStart(){const base=sharpLeft||mode.minutes*60;sharpEnd.current=Date.now()+base*1000;setSharpLeft(base);setSharpOn(true);}
+ function sharpPause(){setSharpLeft(Math.max(0,Math.round((sharpEnd.current-Date.now())/1000)));setSharpOn(false);}
+ function sharpResetTimer(){setSharpOn(false);setSharpLeft(0);}
+ function sharpNext(){setSharpShift(s=>s+1);resetRep();}
+ function openSharp(id:SharpModeId){pickMode(id);nav('sharp');}
+ function logSharp(){const log={...sharpStore.read(),[todayStr]:sharpMode};sharpStore.write(log);if(loaded)save(`sharp_${todayStr}`,{mode:sharpMode,item:sharpItemId,review,weakest:weakest?weakest.id:'',date:new Date().toISOString()});setNotice(weakest?`Session logged. Weakest today: ${weakest.label}.`:'Session logged. Nothing marked weak — check that you were honest.');}
+ // Critique Library: metadata syncs like any other entry; screenshots stay in
+ // this device's IndexedDB and are never uploaded.
+ const library:LibItem[]=(()=>{const v:unknown=value('critique_library',[]);return Array.isArray(v)?v as LibItem[]:[];})();
+ const shotKeys=library.filter(x=>x.hasShot).map(x=>x.id).join(',');
+ async function saveLibrary(kind:'sprint'|'wild',id:string){
+  const title=(libTitle||(kind==='sprint'?sprint.surface:'')).trim();
+  if(!title){setNotice('Give this capture a title before saving it.');return;}
+  setLibBusy(true);
+  let hasShot=false;
+  if(libFile){try{const blob=await downscaleImage(libFile);await putShot(id,blob);hasShot=true;}catch{setNotice('The screenshot could not be stored on this device — your notes were kept.');}}
+  const answers=kind==='sprint'?critiqueQuestions.map((cq,i)=>({q:cq,a:String(value(`sharp_cs_${sprint.id}_q${i}`,'')||'').trim()})).filter(x=>x.a):[];
+  const item={id,kind,date:new Date().toISOString(),title,principle:libPrinciple.trim(),note:libNote.trim(),surface:kind==='sprint'?sprint.surface:'',answers,hasShot};
+  await save('critique_library',[item,...library].slice(0,150));
+  setLibTitle('');setLibPrinciple('');setLibNote('');setLibFile(null);if(shotInput.current)shotInput.current.value='';
+  setLibBusy(false);
+ }
+ async function removeLibrary(id:string){await save('critique_library',library.filter(x=>x.id!==id));try{await delShot(id);}catch{/* image already gone */}setShotUrls(u=>{const n={...u};if(n[id])URL.revokeObjectURL(n[id]);delete n[id];return n;});}
+ function exportLibrary(){
+  const md=['# Critique Library','',`Exported ${new Date().toLocaleDateString()} · ${library.length} ${library.length===1?'entry':'entries'}`,'',
+   ...library.map(x=>[`## ${x.title}`,`*${new Date(x.date).toLocaleDateString()} · ${x.kind==='sprint'?'Critique sprint':'Craft in the wild'}${x.principle?` · ${x.principle}`:''}*`,'',x.surface?`**Surface:** ${x.surface}`:'',x.note||'',...(x.answers||[]).map((a:LibAnswer)=>`- **${a.q}** ${a.a}`),x.hasShot?'_Screenshot stored privately on the original device._':'',''].filter(Boolean).join('\n'))].join('\n');
+  download('critique-library.md',new Blob([md],{type:'text/markdown'}));
+ }
+ // Pull stored screenshots out of IndexedDB and mint object URLs for the grid.
+ useEffect(()=>{let stop=false;(async()=>{for(const id of shotKeys.split(',').filter(Boolean)){if(shotUrlsRef.current[id])continue;try{const b=await getShot(id);if(b&&!stop){const url=URL.createObjectURL(b);shotUrlsRef.current[id]=url;setShotUrls(u=>({...u,[id]:url}));}}catch{/* image unreadable on this device */}}})();return()=>{stop=true;};},[shotKeys]);
+ useEffect(()=>()=>{Object.values(shotUrlsRef.current).forEach(u=>URL.revokeObjectURL(u));},[]);
  const q=query.trim().toLowerCase();
  const baseTopics=domain==='__review'?reviewList:uxEncyclopedia.filter(t=>domain==='All'||t.category===domain);
  const filteredTopics=baseTopics.filter(t=>!q||[t.title,t.summary,t.mentalModel,t.category,t.eyebrow,t.keyPrinciples.join(' ')].join(' ').toLowerCase().includes(q));
@@ -301,7 +381,7 @@ export default function Studio(){
  async function startRecording(){if(micPending||recording)return;setRecordError('');if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){setRecordError('Recording is not supported here. Open this page in a current browser, or use the timer and your device recorder.');return;}if(audio&&!audioSaved&&!confirm('This take has not been saved. Replace it with a new recording?'))return;setMicPending(true);try{const s=await navigator.mediaDevices.getUserMedia({audio:true});stream.current=s;const type=['audio/webm','audio/mp4','audio/ogg'].find(t=>MediaRecorder.isTypeSupported(t));const r=new MediaRecorder(s,type?{mimeType:type}:undefined);recorder.current=r;chunks.current=[];r.ondataavailable=e=>{if(e.data.size)chunks.current.push(e.data)};r.onstop=()=>{const blob=new Blob(chunks.current,{type:r.mimeType||'audio/webm'});setAudio(blob);setAudioUrl(URL.createObjectURL(blob));setAudioSaved(false);s.getTracks().forEach(t=>t.stop());if(recordTimeout.current)clearTimeout(recordTimeout.current);setRecording(false);setRunning(false)};r.onerror=()=>{setRecordError('Recording was interrupted. Check the playback before saving.');s.getTracks().forEach(t=>t.stop());setRecording(false);setRunning(false)};r.start(1000);started.current=Date.now();setAudio(null);setAudioUrl('');setElapsed(0);setRecording(true);setRunning(true);recordTimeout.current=setTimeout(()=>{if(r.state==='recording')r.stop();},limit*1000);}catch{setRecordError('Microphone access was unavailable. Allow microphone access in your browser, or practise with the timer instead.');}finally{setMicPending(false)}}
  async function saveAudio(){if(!audio||!loaded)return;setBusy(b=>[...b,'audio']);setRecordError('');try{const r=await fetch('/api/audio',{method:'POST',headers:{'content-type':audio.type,'x-practice-label':`Day ${day} - ${limit}s practice`},body:audio});if(!r.ok)throw new Error('Could not save this recording. Download it below or retry.');const v:any=await r.json();setEntries(e=>({...e,[`audio_${v.id}`]:v}));setAudioSaved(true);setNotice('Recording saved privately.');}catch(e:any){setRecordError(e.message)}finally{setBusy(b=>b.filter(k=>k!=='audio'))}}
  function challengeSelect(i:number){setSelected(i);setChallengeReveal(false);setInterruption('');}
- const titleMap:Record<string,[string,string,string]>={today:['DAILY PRACTICE','Make your thinking visible.','A little speaking. A little making. One better decision.'],speak:['SPEAKING STUDIO','Find your design voice.','Practise a clear answer, listen back, and try one improvement.'],lab:['CHALLENGE LAB','Think beyond the first idea.','95 problems across Apple, Google, Atlassian, and general product design.'],stories:['YOUR EXPERIENCE','Build stories you can defend.','Keep the evidence close and your contribution clear.'],learn:['STUDY & UPDATES','The encyclopedia of your craft.','41 visual study topics across 10 design domains, plus lessons, critiques, and primary sources.'],roadmap:['YOUR CURRICULUM','Sixty days. One practice at a time.','Move at your own pace. Speaking runs through every phase.'],review:['PROGRESS & REVIEW','Notice what is getting clearer.','Compare your attempts and choose the next skill to work on.']};
+ const titleMap:Record<string,[string,string,string]>={today:['DAILY PRACTICE','Make your thinking visible.','A little speaking. A little making. One better decision.'],speak:['SPEAKING STUDIO','Find your design voice.','Practise a clear answer, listen back, and try one improvement.'],lab:['CHALLENGE LAB','Think beyond the first idea.','95 problems across Apple, Google, Atlassian, and general product design.'],sharp:['SHARPNESS LAB','Decide fast. Defend it.','Ten to fifteen minutes of judgment practice: observe, diagnose, decide, defend, measure.'],stories:['YOUR EXPERIENCE','Build stories you can defend.','Keep the evidence close and your contribution clear.'],learn:['STUDY & UPDATES','The encyclopedia of your craft.','41 visual study topics across 10 design domains, plus lessons, critiques, and primary sources.'],roadmap:['YOUR CURRICULUM','Sixty days. One practice at a time.','Move at your own pace. Speaking runs through every phase.'],review:['PROGRESS & REVIEW','Notice what is getting clearer.','Compare your attempts and choose the next skill to work on.']};
  return <div className="shell"><aside className="sidebar" aria-label="Sidebar navigation"><div className="brand"><span className="brandmark">d.</span><div>design practice<small>PRABHAKAR'S STUDIO</small></div></div><p className="navlabel">YOUR WORKSPACE</p><nav aria-label="Main navigation">{navigation.map(([id,label,Icon])=><button key={id} className={view===id?'active':''} aria-current={view===id?'page':undefined} onClick={()=>nav(id)}><Icon size={18}/>{label}</button>)}</nav>
 <div className="sidefoot">
   <div className="avatar" aria-hidden="true">PK</div>
@@ -375,9 +455,379 @@ export default function Studio(){
   <div className="weekdots" role="group" aria-label="This week’s drill log">
    {weekDots.map((d,i)=><span key={d.ds} role="img" aria-label={`${'Monday Tuesday Wednesday Thursday Friday Saturday Sunday'.split(' ')[i]} ${d.ds}: ${d.logged?'drill logged':'no drill logged yet'}${d.isToday?' (today)':''}`} className={`weekdot${d.logged?' done':''}${d.isToday?' today':''}`}>{['M','T','W','T','F','S','S'][i]}</span>)}
   </div>
+ </section><section className="panel sharptoday" aria-label={`Sharpness Lab: ${modeById(rhythmMode).name}`}>
+  <div className="dosehead">
+   <p className="eyebrow" style={{margin:0}}>SHARPNESS LAB · {todayRhythm.day.toUpperCase()}</p>
+   <span className="minutabadge"><Crosshair size={13} aria-hidden="true"/> {modeById(rhythmMode).minutes} min rep</span>
+  </div>
+  <h2>{modeById(rhythmMode).name}</h2>
+  <p className="drillbrief">{modeById(rhythmMode).tagline} {todayRhythm.note}</p>
+  <div className="actionmini" aria-hidden="true">{sharpActions.map(a=><span key={a.id}>{a.label}</span>)}</div>
+  <div className="actions">
+   <button onClick={()=>openSharp(rhythmMode)}><Crosshair size={15}/> Start today’s rep</button>
+   <button className="secondary" onClick={()=>nav('sharp')}>All eight modes <ChevronRight size={15}/></button>
+   {sharpLog[todayStr]&&<span className="muted smalltext"><Check size={14}/> Logged today: {modeById(sharpLog[todayStr] as SharpModeId).name}</span>}
+  </div>
  </section><section className="hero"><div><span className="pill">DAY {String(day).padStart(2,'0')} · {p.focus.toUpperCase()}</span><h2>{p.title}</h2><p>{p.speak}</p><button onClick={()=>openSpeak(p.speak)}><Mic size={16}/> Start speaking practice</button><span className="herometa">2-minute answer · no script needed</span></div><div className="heroaside"><span className="big">{String(day).padStart(2,'0')}<span>/60</span></span><div className="herobar" role="progressbar" aria-valuenow={completeDays} aria-valuemin={0} aria-valuemax={60} aria-label={`Curriculum progress: ${completeDays} of 60 full practice days completed`}><i style={{width:`${completeDays/60*100}%`}}/></div><p>{completeDays} full practice days completed<br/>Keep your pace. Keep showing up.</p></div></section><div className="dashboardgrid"><section className="panel routine"><div className="sectionhead"><div><h2>Your practice session</h2><p className="muted smalltext">{todayDone} of 6 activities completed</p></div><div className="segmented"><button className={!short?'chosen':''} onClick={()=>setShort(false)}>45 min</button><button className={short?'chosen':''} onClick={()=>setShort(true)}>15 min</button></div></div><div className="progressline" role="progressbar" aria-valuenow={todayDone} aria-valuemin={0} aria-valuemax={6} aria-label={`Daily session progress: ${todayDone} of 6 activities completed`}><i style={{width:`${todayDone/6*100}%`}}/></div>{tasks.map((t,i)=><div className="task" key={t.key}><button className={`checkbutton ${entries[`done_${day}_${t.key}`]?.done?'checked':''}`} aria-label={`${entries[`done_${day}_${t.key}`]?.done?'Mark incomplete':'Complete'}: ${t.name}`} aria-pressed={!!entries[`done_${day}_${t.key}`]?.done} disabled={!loaded||busy.includes(`done_${day}_${t.key}`)} onClick={()=>save(`done_${day}_${t.key}`,{done:!entries[`done_${day}_${t.key}`]?.done,date:new Date().toISOString()})}>{entries[`done_${day}_${t.key}`]?.done&&<Check size={14}/>}</button><button className="taskopen" aria-label={`Open ${t.name} activity: ${t.desc}`} onClick={()=>{setActivity(t);setTimeout(()=>{activityRef.current?.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}}><span className={`taskicon icon${i}`}><t.icon size={18}/></span><span><strong>{t.name}</strong><small>{t.desc}</small></span><span className="duration">{short?[2,4,3,3,2,1][i]:t.minutes} min</span><ChevronRight size={16}/></button></div>)}{activity&&<div className="activity" ref={activityRef} tabIndex={-1}><div className="sectionhead"><h3>{activity.name}</h3><button className="textbutton" onClick={()=>setActivity(null)}>Close</button></div><p>{activity.prompt}</p><button className="secondary small" onClick={()=>openSpeak(activity.prompt)}>Practise aloud</button>{note(`practice_${day}_${activity.key}`,'Working notes','Capture your reasoning, sketch reference, or one thing to try again.',4)}</div>}</section><aside><section className="panel socialcard"><span className="iconlabel"><MessageCircle size={18}/> OUTSIDE THE STUDIO</span><h2>One real conversation.</h2><p>{p.social}</p><div className="conversationhint">Ask → listen → follow up → contribute.</div><button className="secondary full" disabled={!loaded||busy.includes(`social_${day}`)} onClick={()=>save(`social_${day}`,{done:!entries[`social_${day}`]?.done,date:new Date().toISOString()})}>{entries[`social_${day}`]?.done?'Conversation completed':'Mark as practised'}</button></section><section className="panel reminder"><p className="eyebrow">A THOUGHT TO KEEP</p><p className="quote">“Make one difficult decision easy to understand.”</p><p className="muted smalltext">Pause when you need to. Clarity matters more than talking continuously.</p><button className="textbutton" onClick={()=>nav('stories')}>Build your story bank</button></section></aside></div></>}
  {view==='speak'&&<><div className="speakinggrid"><section className="panel"><div className="sectionhead"><span className="tag">ANSWER PRACTICE</span><div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}><select aria-label="Choose a mock interview round" value={mockLoopId} disabled={recording} onChange={e=>{const val=e.target.value;setMockLoopId(val);if(val){const [lId,rIdx]=val.split(':');const loop=mockLoops.find(l=>l.id===lId);if(loop&&loop.rounds[+rIdx]){const r=loop.rounds[+rIdx];setSpeakPrompt(`[${loop.name} · ${r.name} (${r.minutes} min)] Focus: ${r.focus}`);}}}}><option value="">Mock interview loops</option>{mockLoops.map(loop=><optgroup key={loop.id} label={`${loop.name} (${loop.totalMinutes}m)`}>{loop.rounds.map((r,idx)=><option key={`${loop.id}:${idx}`} value={`${loop.id}:${idx}`}>{r.name} ({r.minutes}m)</option>)}</optgroup>)}</select><select aria-label="Choose a speaking question" value={behaviors.includes(speakPrompt)?speakPrompt:''} disabled={recording} onChange={e=>{setMockLoopId('');setSpeakPrompt(e.target.value);}}><option value="">Behavioral & leadership questions</option>{behaviors.map(q=><option key={q}>{q}</option>)}</select></div></div><h2 className="prompt">{speakPrompt||p.speak}</h2><div className="answerpath"><span>Context</span><span>Evidence</span><span>Options</span><span>Decision</span><span>Trade-off</span><span>Learning</span></div><div className="timer"><div className="segmented" role="group" aria-label="Timer duration">{[30,120,300].map(n=><button key={n} role="button" aria-pressed={limit===n} disabled={recording||running} className={limit===n?'chosen':''} onClick={()=>{setLimit(n);setElapsed(0)}}>{n===30?'30 seconds':`${n/60} minutes`}</button>)}</div><div className={recording?'clock recording':'clock'} aria-live="off" aria-label={`Time remaining: ${time(Math.max(0,limit-elapsed))}`}>{time(Math.max(0,limit-elapsed))}</div><div className="sr-only" aria-live="polite">{recording?'Microphone active. Recording in progress.':audioSaved?'Recording saved privately.':audio?'Recording stopped. Review take.':''}</div><p className="muted smalltext">{recording?'Recording your voice…':limit===30?'Headline + one concrete example':limit===120?'Context + decision + trade-off + result':'Add evidence, alternatives, collaboration, and learning'}</p><div className="actions"><button onClick={recording?()=>recorder.current?.stop():startRecording} disabled={micPending}>{recording?<Square size={16}/>:<Mic size={16}/>} {recording?'Stop recording':micPending?'Opening microphone…':'Record answer'}</button><button className="secondary" disabled={recording} onClick={()=>{if(elapsed>=limit)setElapsed(0);setRunning(!running)}}>{running?<Pause size={16}/>:<Play size={16}/>} {running?'Pause':'Timer only'}</button><button className="iconbutton" disabled={recording} aria-label="Reset timer" onClick={()=>{setRunning(false);setElapsed(0)}}><RotateCcw size={18}/></button></div></div>{recordError&&<p className="alert" role="alert">{recordError}</p>}{audioUrl&&<div className="take"><h3>Your latest take</h3><audio controls aria-label="Playback of your latest practice take" src={audioUrl}/><div className="actions"><button className="small" disabled={audioSaved||busy.includes('audio')||!loaded} onClick={saveAudio}>{audioSaved?'Recording saved':busy.includes('audio')?'Saving…':'Save recording'}</button><button className="secondary small" onClick={()=>audio&&download(`day-${day}-practice.${audio.type.includes('mp4')?'m4a':audio.type.includes('ogg')?'ogg':'webm'}`,audio)}>Download take</button></div><p className="muted smalltext">Review the take before starting another. Unsaved recordings are lost when you leave the page.</p></div>}<p className="privacytext"><ShieldCheck size={14}/> Microphone starts only when you choose Record. Audio is uploaded only when you choose Save.</p></section><aside><section className="panel"><p className="eyebrow">INTERRUPTION PRACTICE</p><h2>Stay with the question.</h2><p>{interruption||'Try a challenge midway through your answer. Pause, acknowledge it, and respond directly.'}</p><button className="secondary" onClick={()=>setInterruption(interruptions[(interruptions.indexOf(interruption)+1)%interruptions.length])}>Give me a challenge</button><hr/><p className="smalltext">“That changes the constraint. I would…”</p><p className="smalltext">“What I can support with evidence is…”</p><p className="smalltext">“Let me separate those two questions.”</p></section><section className="panel"><h3>Review for clarity</h3><ul className="cleanlist"><li>Did I answer the actual question?</li><li>Was my own decision clear?</li><li>Did I explain a real trade-off?</li><li>Did I distinguish evidence from assumption?</li><li>What would I shorten or clarify?</li></ul><p className="muted smalltext">Self-review, not automated scoring. Accent, pauses, and word count are not measures of design ability.</p></section></aside></div><section className="panel">{note(`speaking_${day}`,'One thing to improve in the next take','Name a specific sentence, missing example, or decision to explain. Then record another take.',4)}</section><section className="panel"><h2>Saved recordings <span className="count">{recordings.length}</span></h2>{recordings.length?recordings.map(r=><div className="recordrow" key={r.id}><div><strong>{r.label}</strong><small>{new Date(r.date).toLocaleString()}</small></div><audio controls preload="none" src={`/api/audio?id=${r.id}`}/></div>):<p className="muted">Your first saved take will appear here. Keep day one so you can compare it with day seven.</p>}</section></>}
  {view==='lab'&&<><div className="filters"><label htmlFor="company-filter">Company<select id="company-filter" aria-label="Filter challenges by company" value={company} onChange={e=>setCompany(e.target.value)}>{['All','Apple','Google','Atlassian','General'].map(x=><option key={x}>{x}</option>)}</select></label><label htmlFor="focus-filter">Focus<select id="focus-filter" aria-label="Filter challenges by category" value={filter} onChange={e=>setFilter(e.target.value)}>{['All',...new Set(challenges.map(c=>c.category))].map(x=><option key={x}>{x}</option>)}</select></label><label htmlFor="difficulty-filter">Difficulty<select id="difficulty-filter" aria-label="Filter challenges by difficulty" value={level} onChange={e=>setLevel(e.target.value)}>{['All','Warm-up','Senior','Stretch'].map(x=><option key={x}>{x}</option>)}</select></label><span className="muted smalltext">{challenges.filter(c=>(filter==='All'||c.category===filter)&&(level==='All'||c.level===level)&&(company==='All'||c.company===company)).length} challenges available</span></div><div className="labgrid"><section className="challengeitems" role="region" aria-label="Design challenges list">{challenges.filter(c=>(filter==='All'||c.category===filter)&&(level==='All'||c.level===level)&&(company==='All'||c.company===company)).map(c=><button key={c.id} className={`challengeitem ${selected===c.id-1?'selected':''}`} aria-current={selected===c.id-1?'true':undefined} onClick={()=>challengeSelect(c.id-1)}><span className="eyebrow">{String(c.id).padStart(2,'0')} · {c.company} · {c.category} · {c.level}</span><strong>{c.title}</strong></button>)}</section><section className="panel challengeworkspace" ref={workspaceRef} tabIndex={-1}><div className="sectionhead"><span className="tag">{selectedChallenge.company} · {selectedChallenge.category} / {selectedChallenge.level}</span><span className="muted smalltext">15–30 min</span></div><h2 className="prompt">{selectedChallenge.title}</h2><p>{selectedChallenge.prompt}</p><div className="inset"><h3>Before you draw</h3><ul><li>Who is the user, and what job matters?</li><li>What outcome and constraints shape the decision?</li><li>What evidence exists, and what are you assuming?</li></ul></div><div className="threeways"><div><b>A · Expected</b><p>A strong conventional solution.</p></div><div><b>B · Reframed</b><p>Change the mental model.</p></div><div><b>C · Radical</b><p>Question whether the work should exist.</p></div></div>{note(`challenge_${selectedChallenge.id}`,'Your working notes','Clarify → evidence → three options → choice → flow → edge states → accessibility → measurement. Link to your sketch if useful.',7)}<div className="actions"><button className="secondary" onClick={()=>openSpeak(selectedChallenge.prompt)}>Defend it aloud</button><button className="secondary" onClick={()=>setInterruption(interruptions[(interruptions.indexOf(interruption)+1)%interruptions.length])}>Add a constraint</button></div>{interruption&&<p className="constraint">New constraint: {interruption}</p>}<button className="disclosure" aria-expanded={challengeReveal} aria-controls="coaching-notes" onClick={()=>setChallengeReveal(!challengeReveal)}>{challengeReveal?'Hide coaching notes':'I have attempted it — show coaching notes'}<ChevronRight size={17}/></button>{challengeReveal&&<div id="coaching-notes" className="inset"><h3>Risk to examine</h3><p>{selectedChallenge.risk}</p><h3>Reasoning to explore</h3><div style={{whiteSpace:'pre-line',fontSize:'0.9rem',lineHeight:1.6}}>{selectedChallenge.notes}</div><h3>Self-review</h3><p>Can you defend user value, feasibility, accessibility, risk, and the rejected alternative? State a success metric, a guardrail, and the next experiment. These are coaching directions, not a single correct solution.</p></div>}</section></div></>}
+ {view==='sharp'&&<>
+  <section className="panel sharpframe" aria-label="The five actions">
+   <div className="dosehead">
+    <p className="eyebrow" style={{margin:0}}>THE LOOP · EVERY REP, EVERY MODE</p>
+    <span className="streakchip" role="status" aria-label={sharpStreak>0?`Sharpness streak: ${sharpStreak} days`:'No sharpness streak yet — log a session to begin'}><Flame size={14} aria-hidden="true"/> {sharpStreak>0?`${sharpStreak}-day streak`:'Start your streak'}</span>
+   </div>
+   <div className="actionstrip">
+    {sharpActions.map((a,i)=><div key={a.id} className="actioncard">
+     <span className="actionnum">{i+1}</span>
+     <strong>{a.label}</strong>
+     <em>{a.question}</em>
+     <p>{a.prompt}</p>
+     {frameOpen&&<p className="actiongood"><Check size={13} aria-hidden="true"/> {a.good}</p>}
+     {frameOpen&&<p className="actionbad"><X size={13} aria-hidden="true"/> {a.failure}</p>}
+    </div>)}
+   </div>
+   <button className="textbutton" aria-expanded={frameOpen} onClick={()=>setFrameOpen(v=>!v)}>{frameOpen?'Hide what strong and weak sound like':'Show what strong and weak sound like'} <ChevronRight size={14} aria-hidden="true"/></button>
+  </section>
+
+  <section className="panel rhythmcard" aria-label="Weekly rhythm">
+   <div className="sectionhead">
+    <div><h2>{todayRhythm.day} · {modeById(rhythmMode).name}</h2><p className="muted smalltext">{todayRhythm.note}</p></div>
+    <button className="secondary small" onClick={()=>pickMode(rhythmMode)}>Practise today’s mode <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>
+   <div className="rhythmrow" role="group" aria-label="This week’s sharpness sessions">
+    {sharpWeek.map((d,i)=><button key={d.ds} className={`rhythmday${d.logged?' done':''}${d.isToday?' today':''}`} aria-label={`${d.plan.day} ${d.ds}: ${modeById(d.plan.mode==='review'?'autopsy':d.plan.mode).name}${d.logged?' — logged':' — not logged'}${d.isToday?' (today)':''}`} onClick={()=>pickMode(d.plan.mode==='review'?'autopsy':d.plan.mode)}>
+     <span>{d.plan.short}</span>
+     <small>{modeById(d.plan.mode==='review'?'autopsy':d.plan.mode).short}</small>
+     {d.logged&&<Check size={12} aria-hidden="true"/>}
+    </button>)}
+   </div>
+   {todayRhythm.day==='Sunday'&&<p className="sayhint"><RotateCcw size={13} aria-hidden="true"/> {sundayRevision}</p>}
+  </section>
+
+  <div className="domainchips" role="group" aria-label="Practice modes">
+   {sharpModes.map(m=>{const Icon=sharpIcons[m.id];return <button key={m.id} aria-pressed={sharpMode===m.id} className={`chip${sharpMode===m.id?' chosen':''}`} onClick={()=>pickMode(m.id)}><Icon size={15} aria-hidden="true"/> {m.name}</button>;})}
+  </div>
+
+  <section className="panel modecard" aria-label={`${mode.name} briefing`}>
+   <div className="dosehead">
+    <p className="eyebrow" style={{margin:0}}>{mode.name.toUpperCase()} · {mode.minutes} MIN</p>
+    {sharpOn||sharpLeft>0?(
+     <span className="drilltimer" aria-live="off" aria-label={`Rep time remaining: ${time(sharpLeft)}`}>{time(sharpLeft)}
+      {sharpOn?<button className="ghostbtn" aria-label="Pause rep timer" onClick={sharpPause}><Pause size={14}/></button>:<button className="ghostbtn" aria-label="Resume rep timer" onClick={sharpStart}><Play size={14}/></button>}
+      <button className="ghostbtn" aria-label="Reset rep timer" onClick={sharpResetTimer}><RotateCcw size={14}/></button>
+     </span>
+    ):<button className="small" onClick={sharpStart}><Play size={14}/> Start {mode.minutes}-min rep</button>}
+   </div>
+   <h2>{mode.tagline}</h2>
+   <p className="drillbrief">{mode.trains}</p>
+   <ol className="drillsteps">{mode.steps.map(s=><li key={s}>{s}</li>)}</ol>
+   <div className="actionmini" aria-label="Actions trained by this mode">{sharpActions.filter(a=>mode.actions.includes(a.id)).map(a=><span key={a.id}>{a.label}</span>)}</div>
+   <p className="sayhint"><Sparkles size={13} aria-hidden="true"/> {mode.senior}</p>
+  </section>
+
+  {sharpMode==='critique'&&<>
+   <section className="panel">
+    <div className="sectionhead">
+     <div><span className="domtag">{sprint.sector}</span><h2 style={{marginTop:'8px'}}>{sprint.surface}</h2><p className="muted smalltext">{sprint.context}</p></div>
+     <button className="textbutton" onClick={sharpNext}>Another surface <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>
+    <div className="signalbox">
+     <span>OBSERVABLE SIGNALS — FACTS ONLY</span>
+     <ul>{sprint.signals.map(s=><li key={s}>{s}</li>)}</ul>
+    </div>
+    <h3><ListChecks size={16} aria-hidden="true"/> Five questions · five minutes</h3>
+    {critiqueQuestions.map((cq,i)=><div key={cq}>{note(`sharp_cs_${sprint.id}_q${i}`,`${i+1}. ${cq}`,i===3?'One move only. Say why it is first.':i===4?'Name who loses, and what you would watch.':'One or two lines. Speak it aloud first.',2)}</div>)}
+    <div className="actions" style={{marginTop:'18px'}}>
+     <button className="secondary" onClick={()=>openSpeak(`Critique sprint — ${sprint.surface}. ${sprint.context} Answer all five: ${critiqueQuestions.join(' ')}`,300)}><Mic size={15}/> Answer aloud · 5 min</button>
+     <button className={sharpStage>0?'secondary':''} aria-expanded={sharpStage>0} onClick={()=>setSharpStage(sharpStage>0?0:1)}>{sharpStage>0?'Hide the sharp answer':'Show the sharp answer'}</button>
+    </div>
+    {sharpStage>0&&<div className="revealbox">
+     <h3><Lightbulb size={16} aria-hidden="true"/> What a sharp answer names</h3>
+     <p>{sprint.lens}</p>
+     <p className="trapline"><TriangleAlert size={14} aria-hidden="true"/> Common trap: {sprint.trap}</p>
+     <button className="textbutton" onClick={()=>openDrillTopic(sprint.topicId)}>Related encyclopedia topic <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>}
+   </section>
+
+   <section className="panel libpanel" aria-label="Critique Library">
+    <div className="sectionhead">
+     <div><h2>Critique Library</h2><p className="muted smalltext">{library.length} saved · notes sync privately, screenshots stay on this device only.</p></div>
+     <button className="secondary small" onClick={exportLibrary} disabled={!library.length}><Download size={14}/> Export as Markdown</button>
+    </div>
+    <div className="libform">
+     <div className="formgrid">
+      <label htmlFor="lib-title">Title<input id="lib-title" value={libTitle} maxLength={120} placeholder={sprint.surface} onChange={e=>setLibTitle(e.target.value)}/></label>
+      <label htmlFor="lib-principle">Principle in play<input id="lib-principle" value={libPrinciple} maxLength={80} placeholder="Hierarchy · recovery · restraint…" onChange={e=>setLibPrinciple(e.target.value)}/></label>
+     </div>
+     <label htmlFor="lib-note">Two sentences<textarea id="lib-note" rows={2} maxLength={1200} value={libNote} placeholder="What is alive or violated here, and what would you test first?" onChange={e=>setLibNote(e.target.value)}/></label>
+     <label htmlFor="lib-shot" className="shotlabel"><ImageIcon size={14} aria-hidden="true"/> Screenshot (optional — stored on this device)</label>
+     <input id="lib-shot" ref={shotInput} type="file" accept="image/*" onChange={e=>setLibFile(e.target.files?.[0]||null)}/>
+     <div className="actions">
+      <button disabled={libBusy} onClick={()=>saveLibrary('sprint',`cl_${crypto.randomUUID()}`)}><Upload size={15}/> {libBusy?'Saving…':'Save this sprint'}</button>
+      <button className="secondary" disabled={libBusy} onClick={()=>saveLibrary('wild',`cl_${crypto.randomUUID()}`)}><Eye size={15}/> Save as craft-in-the-wild</button>
+      <span className="muted smalltext">Sprint saves copy your five answers. Craft-in-the-wild saves the note alone.</span>
+     </div>
+    </div>
+    {library.length>0?<div className="libgrid">
+     {library.map(item=><article key={item.id} className="libcard">
+      {/* eslint-disable-next-line @next/next/no-img-element -- on-device blob URL, never a remote asset */}
+      {item.hasShot&&shotUrls[item.id]&&<img src={shotUrls[item.id]} alt={`Screenshot saved with ${item.title}`}/>}
+      <div className="libbody">
+       <div className="cardmeta"><span className="topicnum">{new Date(item.date).toLocaleDateString()}</span><span className="statusbadge s-rev">{item.kind==='sprint'?'Sprint':'In the wild'}</span></div>
+       <strong className="tctitle">{item.title}</strong>
+       {item.principle&&<span className="domtag">{item.principle}</span>}
+       {item.note&&<p className="tcsum">{item.note}</p>}
+       {(item.answers||[]).length>0&&<details><summary>Five answers</summary><ul className="cleanlist">{item.answers.map((a:LibAnswer,i:number)=><li key={i}><strong>{a.q}</strong><br/>{a.a}</li>)}</ul></details>}
+       <button className="textbutton" onClick={()=>removeLibrary(item.id)}><Trash2 size={13} aria-hidden="true"/> Remove</button>
+      </div>
+     </article>)}
+    </div>:<div className="encycempty"><strong>Nothing saved yet</strong>One capture a day builds a library nobody else has — your own evidence of what good and bad look like in the wild.</div>}
+   </section>
+  </>}
+
+  {sharpMode==='constraint'&&<>
+   <section className="panel">
+    <div className="sectionhead">
+     <div><span className="tag">BASE CHALLENGE · {baseChallenge.company.toUpperCase()} · {baseChallenge.category}</span><h2 style={{marginTop:'10px'}}>{baseChallenge.title}</h2></div>
+     <button className="textbutton" onClick={sharpNext}>Another pairing <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>
+    <p className="lede">{baseChallenge.prompt}</p>
+    <p className="muted smalltext">Work it normally for six minutes. Do not read ahead — the value of this mode is entirely in not seeing it coming.</p>
+    {note(`sharp_ci_base_${baseChallenge.id}`,'Your approach before the interruption','User, job, first direction, and the one thing you would build first.',3)}
+    <div className="actions">
+     <button disabled={sharpStage>0} onClick={()=>setSharpStage(1)}><Zap size={15}/> {sharpStage>0?'Constraint revealed':'Reveal the constraint'}</button>
+     <button className="secondary" onClick={()=>openSpeak(`Design challenge: ${baseChallenge.prompt}`,360)}><Mic size={15}/> Work it aloud · 6 min</button>
+    </div>
+   </section>
+   {sharpStage>0&&<section className="panel constraintcard">
+    <span className="tag">THE INTERRUPTION · SIXTY SECONDS TO ADAPT</span>
+    <h2 style={{marginTop:'10px'}}>{constraintCard.label}</h2>
+    <p className="constraint">{constraintCard.reveal}</p>
+    <p className="muted smalltext"><Target size={13} aria-hidden="true"/> What this actually tests: {constraintCard.tests}</p>
+    {note(`sharp_ci_adapt_${baseChallenge.id}_${constraintCard.id}`,'Adapt out loud, then write it down','What survives, what you drop, what you will no longer promise — and your new first move.',3)}
+    <div className="actions">
+     <button className="secondary" onClick={()=>openSpeak(`Constraint: ${constraintCard.reveal} Adapt your design in sixty seconds. What survives, what goes, what do you no longer promise?`,60)}><Mic size={15}/> Adapt aloud · 60s</button>
+     <button className={sharpStage>1?'secondary':''} aria-expanded={sharpStage>1} onClick={()=>setSharpStage(sharpStage>1?1:2)}>{sharpStage>1?'Hide the comparison':'Compare with cheap and sharp'}</button>
+    </div>
+    {sharpStage>1&&<div className="trapgrid" style={{marginTop:'18px'}}>
+     <div className="trapweak"><b>THE CHEAP ANSWER</b><p>{constraintCard.cheap}</p></div>
+     <div className="trapsenior"><b>THE SHARP ANSWER</b><p>{constraintCard.sharp}</p></div>
+     <div className="trapweak" style={{gridColumn:'1/-1',background:'#fff',borderColor:'#dfe4ee'}}><b>FIRST MOVE</b><p>{constraintCard.firstMove}</p></div>
+     <div className="trapsenior" style={{gridColumn:'1/-1'}}><b>HOW YOU WOULD KNOW</b><p>{constraintCard.measure}</p></div>
+    </div>}
+   </section>}
+  </>}
+
+  {sharpMode==='metrics'&&<section className="panel">
+   <div className="sectionhead">
+    <div><span className="domtag">{metricsKindMeta[rep.kind].label}</span><h2 style={{marginTop:'8px'}}>{rep.title}</h2><p className="muted smalltext">{metricsKindMeta[rep.kind].blurb}</p></div>
+    <button className="textbutton" onClick={sharpNext}>Another rep <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>
+   <div className="casestudy"><p>{rep.scenario}</p></div>
+   <h3><ListChecks size={16} aria-hidden="true"/> The rep</h3>
+   <ol className="drillsteps">{rep.tasks.map(t=><li key={t}>{t}</li>)}</ol>
+   {note(`sharp_mg_${rep.id}`,'Your answers','One line per task. Name the segment and the window before you name a number.',5)}
+   <div className="actions">
+    <button className="secondary" onClick={()=>openSpeak(`Metrics rep — ${rep.title}. ${rep.scenario} ${rep.tasks.join(' ')}`,180)}><Mic size={15}/> Reason aloud · 3 min</button>
+    <button className={sharpStage>0?'secondary':''} aria-expanded={sharpStage>0} onClick={()=>setSharpStage(sharpStage>0?0:1)}>{sharpStage>0?'Hide the defensible read':'Show a defensible read'}</button>
+   </div>
+   {sharpStage>0&&<div className="revealbox">
+    <h3><Lightbulb size={16} aria-hidden="true"/> One defensible read</h3>
+    <p>{rep.read}</p>
+    <p className="trapline"><TriangleAlert size={14} aria-hidden="true"/> Trap: {rep.trap}</p>
+    <button className="textbutton" onClick={()=>openDrillTopic(rep.topicId)}>Related encyclopedia topic <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>}
+  </section>}
+
+  {sharpMode==='synthesis'&&<section className="panel">
+   <div className="sectionhead">
+    <div><h2>{synth.title}</h2><p className="muted smalltext">{synth.context}</p></div>
+    <button className="textbutton" onClick={sharpNext}>Another study <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>
+   <p className="methodline"><FileText size={14} aria-hidden="true"/> {synth.method}</p>
+   <h3><Split size={16} aria-hidden="true"/> Sort every line before you cluster anything</h3>
+   <ul className="synthlist">
+    {synth.items.map(it=><li key={it.id} className={synthChecked?(synthPicks[it.id]===it.kind?'right':'wrong'):''}>
+     <p>{it.text}</p>
+     <div className="segmented" role="group" aria-label={`Classify: ${it.text.slice(0,60)}`}>
+      {(['observation','interpretation'] as const).map(k=><button key={k} className={synthPicks[it.id]===k?'chosen':''} aria-pressed={synthPicks[it.id]===k} disabled={synthChecked} onClick={()=>setSynthPicks(p=>({...p,[it.id]:k}))}>{k==='observation'?'Observation':'Interpretation'}</button>)}
+     </div>
+     {synthChecked&&<p className="synthwhy"><strong>{it.kind==='observation'?'Observation':'Interpretation'}</strong> — {it.why}</p>}
+    </li>)}
+   </ul>
+   <div className="actions">
+    <button disabled={synthChecked||Object.keys(synthPicks).length<synth.items.length} onClick={()=>setSynthChecked(true)}><Check size={15}/> Check my sort ({Object.keys(synthPicks).length}/{synth.items.length})</button>
+    {synthChecked&&<span className="muted smalltext">{synth.items.filter(it=>synthPicks[it.id]===it.kind).length} of {synth.items.length} sorted correctly. Interpretations are where premature solutions get in.</span>}
+   </div>
+   <hr/>
+   {note(`sharp_rs_${synth.id}_clusters`,'Your clusters','Name each cluster in the user’s language, not the product’s.',3)}
+   {note(`sharp_rs_${synth.id}_contradiction`,'The contradiction','Two things in this set do not fit together. Which, and what does that force you to admit?',2)}
+   {note(`sharp_rs_${synth.id}_insight`,'One insight','A sentence that explains behaviour. Not a feature, not a complaint.',2)}
+   {note(`sharp_rs_${synth.id}_opportunity`,'One opportunity statement','How might we… — framed so more than one solution could win.',2)}
+   {note(`sharp_rs_${synth.id}_limits`,'What cannot yet be concluded','The discipline that separates evidence from enthusiasm.',2)}
+   <div className="actions">
+    <button className={sharpStage>0?'secondary':''} aria-expanded={sharpStage>0} onClick={()=>setSharpStage(sharpStage>0?0:1)}>{sharpStage>0?'Hide the debrief':'Show the debrief'}</button>
+    <button className="secondary" onClick={()=>openSpeak(`Synthesis — ${synth.title}. State your insight, your opportunity statement, and what cannot yet be concluded.`,120)}><Mic size={15}/> Present it · 2 min</button>
+   </div>
+   {sharpStage>0&&<div className="revealbox">
+    <h3><Lightbulb size={16} aria-hidden="true"/> Debrief</h3>
+    <p><strong>The contradiction.</strong> {synth.contradiction}</p>
+    <p><strong>One insight.</strong> {synth.insight}</p>
+    <p><strong>One opportunity.</strong> {synth.opportunity}</p>
+    <p className="trapline"><TriangleAlert size={14} aria-hidden="true"/> Cannot yet be concluded: {synth.cannotConclude}</p>
+    <button className="textbutton" onClick={()=>openDrillTopic(synth.topicId)}>Related encyclopedia topic <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>}
+  </section>}
+
+  {sharpMode==='summary'&&<section className="panel">
+   <h2>Three lengths, one decision</h2>
+   <p className="muted smalltext">Use the work you just finished in another mode, or a live decision you owe someone an answer on.</p>
+   {note('sharp_sum_subject','The decision you are summarising','Name it in one line — the choice, not the project.',2)}
+   {summaryLevels.map(l=><div key={l.id} className="sumlevel">
+    <div className="sectionhead">
+     <div><h3>{l.label}<span className="count">{l.words}</span></h3></div>
+     <button className="secondary small" onClick={()=>openSpeak(`${l.label} summary. Must contain: ${l.mustContain.join(' ')}`,l.seconds)}><Mic size={14}/> Record · {l.label}</button>
+    </div>
+    <ul className="principlelist">{l.mustContain.map(x=><li key={x}><CheckCircle2 size={15} aria-hidden="true"/>{x}</li>)}</ul>
+    <p className="sayhint"><Trash2 size={13} aria-hidden="true"/> Cut: {l.cut}</p>
+    <p className="sayhint"><ShieldCheck size={13} aria-hidden="true"/> Passes when: {l.test}</p>
+    {note(`sharp_sum_${l.id}`,`Your ${l.label} version`,'Write it, then read it aloud against the clock. Trim whatever you stumble on.',l.id==='thirty'?3:l.id==='two'?5:8)}
+   </div>)}
+   <div className="trapbox">
+    <h3><TriangleAlert size={16} aria-hidden="true"/> Five ways this goes wrong</h3>
+    <ul className="cleanlist">{summaryFaults.map(f=><li key={f}>{f}</li>)}</ul>
+   </div>
+  </section>}
+
+  {sharpMode==='crossexam'&&(()=>{
+   const storyKeys=[...new Set(['story_first',...Object.keys(entries).filter(k=>k.startsWith('story_')),...Object.keys(drafts).filter(k=>k.startsWith('story_'))])];
+   const s=value(cxStory,{title:'My first project',status:'Needs evidence',fields:{}});
+   const ev=String(s.fields?.[cxQ.evidenceField]||'').trim();
+   return <section className="panel">
+    <div className="sectionhead">
+     <div><h2>Cross-examine one story</h2><p className="muted smalltext">Ninety seconds, out loud, without reading your notes first.</p></div>
+     <label htmlFor="cx-story" className="dayselect">Story<select id="cx-story" value={cxStory} onChange={e=>{setCxStory(e.target.value);setSharpStage(0);}}>{storyKeys.map(k=><option key={k} value={k}>{value(k,{title:'My first project'}).title||'Untitled project'}</option>)}</select></label>
+    </div>
+    {s.status!=='Verified'&&<div className="alert" role="status">This story is marked “{s.status||'Needs evidence'}”. Practise freely, but verify it before it enters an interview.</div>}
+    <div className="questioncard">
+     <span className="tag">{cxQ.core?'CORE QUESTION':'PRESSURE QUESTION'}</span>
+     <p className="prompt">{cxQ.question}</p>
+     <p className="muted smalltext"><Target size={13} aria-hidden="true"/> Why they ask: {cxQ.whyAsked}</p>
+    </div>
+    <div className={ev?'evidencebox':'evidencebox empty'}>
+     <span>YOUR RECORDED EVIDENCE · {cxQ.evidenceField.toUpperCase()}</span>
+     {ev?<p>{ev}</p>:<p>Nothing recorded in this field yet — so this claim is not usable in an interview. Write it in My stories before you rehearse the answer.</p>}
+     <button className="textbutton" onClick={()=>{setStory(cxStory);nav('stories');}}>Open this story <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>
+    {note(`sharp_cx_${cxQ.id}`,'Your answer','Answer first, then check it against the evidence above. If they disagree, the evidence wins.',3)}
+    <div className="actions">
+     <button className="secondary" onClick={()=>openSpeak(`${cxQ.question} (About: ${s.title||'this project'})`,90)}><Mic size={15}/> Answer aloud · 90s</button>
+     <button className={sharpStage>0?'secondary':''} aria-expanded={sharpStage>0} onClick={()=>setSharpStage(sharpStage>0?0:1)}>{sharpStage>0?'Hide the comparison':'Compare weak and strong'}</button>
+     <button className="textbutton" onClick={()=>{setCxIdx(i=>i+1);setSharpStage(0);}}>Draw another question <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>
+    {sharpStage>0&&<>
+     <div className="trapgrid" style={{marginTop:'18px'}}>
+      <div className="trapweak"><b>WEAK</b><p>{cxQ.weak}</p></div>
+      <div className="trapsenior"><b>STRONG</b><p>{cxQ.strong}</p></div>
+     </div>
+     <p className="trapline" style={{marginTop:'14px'}}><MessageCircle size={14} aria-hidden="true"/> They will follow up with: “{cxQ.followUp}”</p>
+    </>}
+   </section>;
+  })()}
+
+  {sharpMode==='a11yrepair'&&<section className="panel">
+   <div className="sectionhead">
+    <div><h2>{a11yCase.screen}</h2><p className="muted smalltext">{a11yCase.context}</p></div>
+    <button className="textbutton" onClick={sharpNext}>Another screen <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>
+   <p className="sayhint">Find everything you can across all seven categories before revealing anything.</p>
+   <div className="domainchips">{a11yCategories.map(c=><span key={c} className="chip">{c}</span>)}</div>
+   {note(`sharp_ar_${a11yCase.id}`,'What you found','One line per defect, and who it blocks. Name the task they cannot finish.',6)}
+   <div className="actions">
+    <button disabled={sharpStage>0} onClick={()=>setSharpStage(1)}><ScanEye size={15}/> {sharpStage>0?'Defects revealed':'Reveal the defect set'}</button>
+    <button className="secondary" onClick={()=>openSpeak(`Accessibility repair — ${a11yCase.screen}. ${a11yCase.context} Name the defects, then rank them by who is blocked.`,240)}><Mic size={15}/> Audit aloud · 4 min</button>
+   </div>
+   {sharpStage>0&&<>
+    <h3 style={{marginTop:'24px'}}><ListChecks size={16} aria-hidden="true"/> Tick what you found</h3>
+    <ul className="defectlist">
+     {a11yCase.defects.map(d=><li key={d.id} className={`sev-${d.severity}`}>
+      <button className={`checkbutton ${foundDefects[`${a11yCase.id}_${d.id}`]?'checked':''}`} aria-pressed={!!foundDefects[`${a11yCase.id}_${d.id}`]} aria-label={`I found this: ${d.symptom}`} onClick={()=>setFoundDefects(f=>({...f,[`${a11yCase.id}_${d.id}`]:!f[`${a11yCase.id}_${d.id}`]}))}>{foundDefects[`${a11yCase.id}_${d.id}`]&&<Check size={13}/>}</button>
+      <div>
+       <div className="cardmeta"><span className="domtag">{d.category}</span><span className={`statusbadge ${d.severity==='blocker'?'s-block':d.severity==='major'?'s-rev':'s-new'}`}>{d.severity}</span></div>
+       <p className="defsymptom">{d.symptom}</p>
+       <p className="tcsum"><strong>Blocks:</strong> {d.blocks}</p>
+       <p className="tcsum"><strong>Repair:</strong> {d.repair}</p>
+       <p className="sourcespan">{d.wcag}</p>
+      </div>
+     </li>)}
+    </ul>
+    <p className="muted smalltext">You found {a11yCase.defects.filter(d=>foundDefects[`${a11yCase.id}_${d.id}`]).length} of {a11yCase.defects.length}. Missing one is information, not failure — note which category you keep missing.</p>
+    <h3 style={{marginTop:'24px'}}><Target size={16} aria-hidden="true"/> Which one do you ship first?</h3>
+    <div className="repairpick" role="group" aria-label="Choose the first repair">
+     {a11yCase.defects.map(d=><button key={d.id} className={firstRepair===d.id?'chosen':''} aria-pressed={firstRepair===d.id} onClick={()=>{setFirstRepair(d.id);setSharpStage(2);}}>{d.category}: {d.symptom.slice(0,58)}{d.symptom.length>58?'…':''}</button>)}
+    </div>
+    {sharpStage>1&&<div className="revealbox">
+     <h3><Lightbulb size={16} aria-hidden="true"/> Defensible ordering</h3>
+     <p>{a11yCase.ordering}</p>
+     <button className="textbutton" onClick={()=>openDrillTopic(a11yCase.topicId)}>Related encyclopedia topic <ChevronRight size={14} aria-hidden="true"/></button>
+    </div>}
+   </>}
+  </section>}
+
+  {sharpMode==='autopsy'&&<section className="panel">
+   <div className="sectionhead">
+    <div><span className="tag">{autopsy.period}</span><h2 style={{marginTop:'10px'}}>{autopsy.subject}</h2></div>
+    <button className="textbutton" onClick={sharpNext}>Another case <ChevronRight size={14} aria-hidden="true"/></button>
+   </div>
+   <div className="casestudy"><p>{autopsy.whatHappened}</p></div>
+   <p className="sourcespan">{autopsy.reported} Treat this as a practice lens, not an account of anyone’s internal reasoning.</p>
+   {note(`sharp_ap_${autopsy.id}_behaviour`,'What user behaviour was misunderstood?','Write this before you choose a lens — the lens will bias the answer otherwise.',3)}
+   <h3><Target size={16} aria-hidden="true"/> Commit to one dominant risk</h3>
+   <div className="lensgrid" role="group" aria-label="Choose the dominant risk">
+    {riskLenses.map(l=><button key={l.id} className={`lensbtn${lensPick===l.id?' chosen':''}`} aria-pressed={lensPick===l.id} onClick={()=>setLensPick(l.id)}><strong>{l.label}</strong><small>{l.asks}</small></button>)}
+   </div>
+   {note(`sharp_ap_${autopsy.id}_signal`,'Which early signal could have exposed it — and when?','Name a number or behaviour that was observable before the money was spent.',2)}
+   {note(`sharp_ap_${autopsy.id}_experiment`,'What smaller experiment should have run first?','Cheap, fast, and capable of returning bad news.',2)}
+   <div className="actions">
+    <button disabled={!lensPick||sharpStage>0} onClick={()=>setSharpStage(1)}><Microscope size={15}/> {sharpStage>0?'Verdict revealed':'Reveal the verdict'}</button>
+    <button className="secondary" onClick={()=>openSpeak(`Failure autopsy — ${autopsy.subject}. What behaviour was misunderstood, which risk was mispriced, what signal came first, and what smaller experiment should have run?`,180)}><Mic size={15}/> Present it · 3 min</button>
+   </div>
+   {sharpStage>0&&<div className="revealbox">
+    <h3><Lightbulb size={16} aria-hidden="true"/> {lensPick===autopsy.verdict?'You called it: ':'A defensible verdict: '}{riskLenses.find(l=>l.id===autopsy.verdict)?.label}{lensPick&&lensPick!==autopsy.verdict?` — you chose ${riskLenses.find(l=>l.id===lensPick)?.label}`:''}</h3>
+    <p>{autopsy.verdictWhy}</p>
+    <p><strong>Secondary risk.</strong> {riskLenses.find(l=>l.id===autopsy.secondary)?.label} — rarely the headline, usually the accelerant.</p>
+    <p><strong>Behaviour misread.</strong> {autopsy.behaviourMisread}</p>
+    <p><strong>Earliest signal.</strong> {autopsy.earlySignal}</p>
+    <p><strong>The smaller experiment.</strong> {autopsy.smallerExperiment}</p>
+    <p className="trapline"><Sparkles size={14} aria-hidden="true"/> Transferable: {autopsy.transferable}</p>
+   </div>}
+  </section>}
+
+  <section className="panel rubricpanel" aria-label="Self-review">
+   <div className="sectionhead">
+    <div><h2>Self-review · no score, one repair</h2><p className="muted smalltext">Six dimensions, marked honestly. The output is your weakest one and the drill that fixes it.</p></div>
+    <span className="progpill"><span className="pdot rev" aria-hidden="true"/> {markedDims}/6 marked</span>
+   </div>
+   {sharpRubric.map(d=><div key={d.id} className="rubricrow">
+    <div className="rubriclabel"><strong>{d.label}</strong><small>{d.asks}</small></div>
+    <div className="segmented" role="group" aria-label={d.label}>
+     {rubricLevels.map(l=><button key={l.id} className={review[d.id]===l.id?'chosen':''} aria-pressed={review[d.id]===l.id} aria-label={`${d.label}: ${l.label} — ${d.levels[l.id]}`} title={d.levels[l.id]} onClick={()=>setReview(r=>({...r,[d.id]:l.id}))}>{l.label}</button>)}
+    </div>
+   </div>)}
+   {weakest&&<div className="repairbox">
+    <strong>Weakest today · {weakest.label}</strong>
+    <p>{weakest.levels[review[weakest.id] as RubricLevel]}</p>
+    <p><Wrench size={14} aria-hidden="true"/> Repair: {weakest.repair}</p>
+   </div>}
+   <div className="actions">
+    <button disabled={!markedDims} onClick={logSharp}><Check size={15}/> Log this session</button>
+    <button className="secondary" onClick={()=>{setReview({});setSharpStage(0);}}><RotateCcw size={15}/> Clear marks</button>
+    {sharpLog[todayStr]&&<span className="muted smalltext">Logged today: {modeById(sharpLog[todayStr] as SharpModeId).name}</span>}
+   </div>
+   <p className="privacytext"><Lock size={14} aria-hidden="true"/> Nothing here is scored or shared. Marks are for choosing tomorrow’s repair, nothing else.</p>
+  </section>
+ </>}
  {view==='stories'&&<><section className="panel"><div className="sectionhead"><div><h2>Your evidence bank</h2><p className="muted smalltext">Start with a real project. No achievements or metrics have been filled in for you.</p></div><button onClick={()=>{const id=`story_${crypto.randomUUID()}`;setStory(id);setDrafts(d=>({...d,[id]:{title:'Untitled project',status:'Needs evidence',fields:{}}}))}}><Plus size={16}/> New story</button></div><div className="storytabs">{[...new Set(['story_first',...Object.keys(entries).filter(k=>k.startsWith('story_')),...Object.keys(drafts).filter(k=>k.startsWith('story_'))])].map(k=><button key={k} className={story===k?'chosen':''} onClick={()=>setStory(k)}>{value(k,{title:'My first project'}).title||'Untitled project'}</button>)}</div>{(()=>{const s=value(story,{title:'',status:'Needs evidence',fields:{}});const edit=(v:any)=>setDrafts(d=>({...d,[story]:{...s,...v}}));return <><div className="formgrid"><label htmlFor="story-title-input">Project name<input id="story-title-input" value={s.title} onChange={e=>edit({title:e.target.value})} placeholder="A real project you can discuss" maxLength={150}/></label><label htmlFor="story-status-select">Evidence status<select id="story-status-select" aria-label="Evidence status" value={s.status} onChange={e=>edit({status:e.target.value})}>{['Needs evidence','Verified','Do not claim yet'].map(t=><option key={t}>{t}</option>)}</select></label></div><p className="inset smalltext">Possible starting points from your brief: NetElixir / LXRSEO / LXRGuide, Chiti Console, operational systems, Kashi Sahayak, or design-system work. Verify your role and project status before using a story in an interview.</p><div className="formgrid">{storyFields.map(f=><label key={f}>{f}<textarea rows={3} maxLength={8000} value={s.fields?.[f]||''} placeholder={f.includes('evidence')?'Describe or link the evidence. State any limitations.':'Use concrete details you can substantiate.'} onChange={e=>edit({fields:{...s.fields,[f]:e.target.value}})}/></label>)}</div><div className="actions"><button disabled={!loaded||busy.includes(story)} onClick={()=>save(story,s)}>{busy.includes(story)?'Saving…':'Save story'}</button><button className="secondary" onClick={()=>openSpeak(`Walk me through ${s.title||'this project'}. What did you personally decide, why, and what evidence supports the outcome?`)}>Rehearse this story</button><span className="muted smalltext">{drafts[story]!==undefined?'Unsaved changes':'Saved stories remain private'}</span></div></>})()}</section><section className="panel"><h2>The five whys of design defence</h2><div className="answerpath">{['Why this approach?','Why not another?','Why this information?','Why here?','Why this hierarchy?'].map(x=><span key={x}>{x}</span>)}</div><p className="muted">Ask a peer to challenge one choice repeatedly. Revise when their question exposes a weak assumption.</p></section></>}
  {view==='learn'&&<><div style={{display:'flex',gap:'8px',marginBottom:'16px'}}><div className="segmented" role="tablist" aria-label="Study modes"><button role="tab" aria-selected={critiqueTab==='encyc'} className={critiqueTab==='encyc'?'chosen':''} onClick={()=>setCritiqueTab('encyc')}>UX Encyclopedia ({uxEncyclopedia.length})</button><button role="tab" aria-selected={critiqueTab==='lessons'} className={critiqueTab==='lessons'?'chosen':''} onClick={()=>setCritiqueTab('lessons')}>Core Study Lessons ({lessons.length})</button><button role="tab" aria-selected={critiqueTab==='critiques'} className={critiqueTab==='critiques'?'chosen':''} onClick={()=>setCritiqueTab('critiques')}>Product & Interaction Critiques ({critiques.length})</button></div></div>{critiqueTab==='encyc'?(<>
  <div className="encyctop">

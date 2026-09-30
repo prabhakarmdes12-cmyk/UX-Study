@@ -104,7 +104,28 @@ Staying *fundamentally aware* without drowning:
 - A quarterly **"re-verify the canon"** pass across Pathway topics: sources age;
   dates on claims are part of the content model, never an afterthought.
 
-### Pillar F — Craft-in-the-wild log
+### Pillar F — Sharpness Lab (shipped)
+Reading keeps knowledge warm; it does not make judgment fast. The lab is the
+decision gym: a rotating 10–15 minute rep built on one loop —
+**Observe → Diagnose → Decide → Defend → Measure** — with eight modes
+(Critique Sprint, Constraint Injection, Metrics Gym, Research Synthesis,
+Executive Summary, Portfolio Cross-Examination, Accessibility Repair Lab,
+Product Failure Autopsy) and a weekly rhythm that chooses the day's mode.
+
+Rules the lab keeps, deliberately:
+- **No score.** Six rubric dimensions, three honest levels, and one output:
+  the weakest dimension plus the drill that repairs it. Consistent with the
+  non-goal of gamified points.
+- **Answers must be earned before they are shown.** Every debrief sits behind a
+  reveal, and the Autopsy will not show its verdict until the learner has
+  committed to a risk lens.
+- **Cross-examination is bound to real evidence.** Each question reads the
+  matching field from the story bank; an empty field is reported as
+  “not usable in an interview yet” rather than quietly passed over.
+- **Screenshots stay on the device.** Critique Library metadata syncs like any
+  other entry; the pixels live in IndexedDB and are never uploaded.
+
+### Pillar G — Craft-in-the-wild log
 Once a day (optional): photograph/screenshot one real interface moment, tag it
 with a principle, write two sentences (what principle is alive or violated here).
 Private by default; export-ready for portfolio or mentoring conversations.
@@ -119,6 +140,7 @@ Private by default; export-ready for portfolio or mentoring conversations.
 | **Shipped (Kaizen v1)** | Daily dose & streaks | Principle of the Day, streak chip, weakest-domain rotation | Loop completable in ≤10 min |
 | **Shipped (Kaizen v1)** | Spaced revision | review timestamps, 90-day decay to Refresh, review queue, For-review chip | Queue drives daily dose |
 | **Shipped (Drills v1)** | Skill drills | 20 drills × 7 tracks (sketch/read/observe/write/audit/measure/systems), focus timer, week dots, topic deep links | Drill loop ≤20 min, loggable daily |
+| **Shipped (Sharpness v1)** | Judgment gym | 8 modes, 5-action loop, reusable self-review rubric, weekly rhythm, Critique Library with on-device screenshots | One rep completable in ≤15 min; every rep ends in a named weakness |
 | **Next 3** | Shelf 1 (Fundamentals) | ~40 foundational topics, gentler voice | Junior-readable, same anatomy |
 | **Next 4** | Shelf 3 (Staff) | ~25 leadership/strategy topics | Senior→Staff bridge complete |
 | **Next 5** | Drill expansion & watchtower | More drill variants per track, monthly watchtower prompts, craft-log archive view | Sustainable at 30 min/day total |
@@ -132,6 +154,8 @@ Private by default; export-ready for portfolio or mentoring conversations.
 | Topics re-recalled after decay | ≥ 80% of the refresh queue monthly | Decay interval tuned, not gameable |
 | Shelf coverage | Every domain touched per fortnight | No domain starved 30+ days |
 | Update-journal entries | ≥ 2 / month | Quality: each has a "what it invalidates" line |
+| Sharpness reps logged / week | ≥ 4 | Never scored; a rep with no named weakness was not honest |
+| Critique Library captures | ≥ 3 / week | Quality over count: each has a principle and a first change |
 | Say-aloud recordings revisited | ≥ 1 self-review / week | Self-review, not automated scoring |
 
 ## 6. What today's build already seeds
@@ -143,6 +167,9 @@ Private by default; export-ready for portfolio or mentoring conversations.
 - **Speak-aloud handoff with timer** — the verbalisation step, already built.
 - **Visible accessibility toolbar** — the learning surface itself is now adjustable.
 - **Update journal** — the Watchtower's home, already exists.
+- **Sharpness Lab** — the decision gym: 12 critique surfaces, 14 constraints,
+  12 metrics reps, 6 synthesis studies, 12 cross-exam questions, 6 accessibility
+  repair cases, 8 failure autopsies, and a Critique Library that grows with use.
 
 ## 7. Guiding principles for every addition
 
