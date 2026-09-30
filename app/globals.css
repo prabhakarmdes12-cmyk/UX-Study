@@ -135,10 +135,7 @@ html.a11y-contrast,
 .a11y-contrast .panel,
 .a11y-contrast .dailycard,
 .a11y-contrast .drillcard,
-.a11y-contrast .topiccard,
 .a11y-contrast .challengeworkspace,
-.a11y-contrast .challengeitem,
-.a11y-contrast .daycard,
 .a11y-contrast .authmodal,
 .a11y-contrast .lesson,
 .a11y-contrast .resource,
@@ -153,31 +150,43 @@ html.a11y-contrast,
   box-shadow: none !important;
 }
 
+/* Headings and labels */
 .a11y-contrast h1,
 .a11y-contrast h2,
 .a11y-contrast h3,
 .a11y-contrast p,
-.a11y-contrast span:not(.hero *):not(.drilltimer *):not(.active *):not(.chosen *),
 .a11y-contrast strong,
+.a11y-contrast label,
 .a11y-contrast .muted,
 .a11y-contrast .smalltext,
 .a11y-contrast .eyebrow,
 .a11y-contrast .drillbrief,
 .a11y-contrast .tcsum,
 .a11y-contrast .quote,
-.a11y-contrast label,
-.a11y-contrast .notebottom span,
 .a11y-contrast .headercrumb,
 .a11y-contrast .navlabel {
   color: #000000 !important;
 }
 
-.a11y-contrast .sidebar nav button {
-  color: #000000 !important;
-  border: 1px solid transparent !important;
-  font-weight: 600 !important;
+/* Sidebar navigation buttons */
+.a11y-contrast .sidebar {
+  border-right: 2px solid #000000 !important;
 }
-
+.a11y-contrast .sidebar nav button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1.5px solid #000000 !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  margin-bottom: 4px;
+}
+.a11y-contrast .sidebar nav button svg {
+  color: #000000 !important;
+}
+.a11y-contrast .sidebar nav button:hover {
+  background: #f1f5f9 !important;
+  text-decoration: underline !important;
+}
 .a11y-contrast .sidebar nav button.active {
   background: #000000 !important;
   color: #ffffff !important;
@@ -188,55 +197,84 @@ html.a11y-contrast,
   color: #ffffff !important;
 }
 
-.a11y-contrast .secondary,
-.a11y-contrast .iconbutton,
-.a11y-contrast .ghostbtn,
-.a11y-contrast .closebtn,
-.a11y-contrast .textbutton {
+/* Header & Display Controls */
+.a11y-contrast header {
+  border-bottom: 2px solid #000000 !important;
+}
+.a11y-contrast .a11ycontrols button {
   background: #ffffff !important;
   color: #000000 !important;
   border: 2px solid #000000 !important;
   font-weight: 700 !important;
 }
-
-.a11y-contrast button:not(.secondary):not(.textbutton):not(.ghostbtn):not(.checkbutton):not(.ghostsignout):not(.modaltabs button) {
+.a11y-contrast .a11ycontrols button.on {
   background: #000000 !important;
   color: #ffffff !important;
   border: 2px solid #000000 !important;
+}
+.a11y-contrast .a11ycontrols button .a11ytxt {
+  color: inherit !important;
+}
+.a11y-contrast .a11ysize,
+.a11y-contrast .a11ylabel {
+  color: #000000 !important;
   font-weight: 800 !important;
 }
-.a11y-contrast button:not(.secondary):not(.textbutton):not(.ghostbtn):not(.checkbutton):not(.ghostsignout):not(.modaltabs button) svg {
+.a11y-contrast .signinbtn {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .signinbtn * {
   color: #ffffff !important;
 }
-
-.a11y-contrast button:hover {
-  text-decoration: underline !important;
-}
-
-.a11y-contrast a {
-  color: #0000ee !important;
-  text-decoration: underline !important;
-  font-weight: 700 !important;
-}
-
-.a11y-contrast input,
-.a11y-contrast select,
-.a11y-contrast textarea {
+.a11y-contrast .authuserchip {
   background: #ffffff !important;
   color: #000000 !important;
   border: 2px solid #000000 !important;
 }
-
-.a11y-contrast input:focus,
-.a11y-contrast select:focus,
-.a11y-contrast textarea:focus,
-.a11y-contrast button:focus-visible,
-.a11y-contrast a:focus-visible {
-  outline: 3px solid #000000 !important;
-  outline-offset: 3px !important;
-  box-shadow: 0 0 0 5px #facc15 !important;
+.a11y-contrast .adminbadge {
+  background: #000000 !important;
+  color: #ffffff !important;
 }
 
+/* Practice Session Tasks (FIX FOR BLACK BLOCKS) */
+.a11y-contrast .task {
+  background: #ffffff !important;
+  border-bottom: 2px solid #000000 !important;
+}
+.a11y-contrast .taskopen {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0 !important;
+}
+.a11y-contrast .taskopen strong {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+}
+.a11y-contrast .taskopen small {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+.a11y-contrast .taskopen .duration {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+.a11y-contrast .taskopen svg {
+  color: #000000 !important;
+}
+.a11y-contrast .taskicon {
+  background: #f1f5f9 !important;
+  color: #000000 !important;
+  border: 1.5px solid #000000 !important;
+}
+.a11y-contrast .taskicon svg {
+  color: #000000 !important;
+}
+
+/* Checkbuttons */
 .a11y-contrast .checkbutton {
   border: 2px solid #000000 !important;
   background: #ffffff !important;
@@ -249,10 +287,83 @@ html.a11y-contrast,
   color: #ffffff !important;
 }
 
-.a11y-contrast .tag,
-.a11y-contrast .statusbadge,
+/* Cards used as buttons: Topic cards, Day cards, Challenge items */
+.a11y-contrast .topiccard,
+.a11y-contrast .daycard,
+.a11y-contrast .challengeitem {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+}
+.a11y-contrast .topiccard *,
+.a11y-contrast .daycard *,
+.a11y-contrast .challengeitem * {
+  color: #000000 !important;
+}
+.a11y-contrast .topiccard.selected,
+.a11y-contrast .daycard.selected,
+.a11y-contrast .challengeitem.selected {
+  border: 3px solid #000000 !important;
+  outline: 2px solid #000000 !important;
+  background: #f8fafc !important;
+}
+
+/* Action buttons in panels */
+.a11y-contrast .actions button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  font-weight: 700 !important;
+}
+.a11y-contrast .actions button:first-child:not(.secondary):not(.textbutton):not(.ghostbtn) {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+  font-weight: 800 !important;
+}
+.a11y-contrast .actions button:first-child:not(.secondary):not(.textbutton):not(.ghostbtn) svg {
+  color: #ffffff !important;
+}
+.a11y-contrast .actions button svg {
+  color: inherit !important;
+}
+.a11y-contrast .actions button:hover {
+  text-decoration: underline !important;
+}
+.a11y-contrast .secondary,
+.a11y-contrast .iconbutton,
+.a11y-contrast .ghostbtn,
+.a11y-contrast .closebtn,
+.a11y-contrast .textbutton {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  font-weight: 700 !important;
+}
+
+/* Segmented controls (45 min / 15 min) */
+.a11y-contrast .segmented {
+  background: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .segmented button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0 !important;
+  font-weight: 700 !important;
+}
+.a11y-contrast .segmented button.chosen {
+  background: #000000 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Chips & Pills */
 .a11y-contrast .chip,
+.a11y-contrast .tag,
 .a11y-contrast .domtag,
+.a11y-contrast .statusbadge,
 .a11y-contrast .streakchip,
 .a11y-contrast .minutabadge,
 .a11y-contrast .progpill {
@@ -261,10 +372,7 @@ html.a11y-contrast,
   border: 2px solid #000000 !important;
   font-weight: 800 !important;
 }
-
-.a11y-contrast .chip.chosen,
-.a11y-contrast .segmented .chosen,
-.a11y-contrast .storytabs .chosen {
+.a11y-contrast .chip.chosen {
   background: #000000 !important;
   color: #ffffff !important;
   border: 2px solid #000000 !important;
@@ -274,6 +382,33 @@ html.a11y-contrast,
   color: #ffffff !important;
 }
 
+/* Form Controls */
+.a11y-contrast input,
+.a11y-contrast select,
+.a11y-contrast textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  font-weight: 600 !important;
+}
+.a11y-contrast input:focus,
+.a11y-contrast select:focus,
+.a11y-contrast textarea:focus,
+.a11y-contrast button:focus-visible,
+.a11y-contrast a:focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px #facc15 !important;
+}
+
+/* Links */
+.a11y-contrast a {
+  color: #0000ee !important;
+  text-decoration: underline !important;
+  font-weight: 700 !important;
+}
+
+/* Hero & Dark Accent Blocks */
 .a11y-contrast .hero,
 .a11y-contrast .mentalbanner,
 .a11y-contrast .drilltimer {
@@ -281,9 +416,7 @@ html.a11y-contrast,
   color: #ffffff !important;
   border: 2px solid #000000 !important;
 }
-.a11y-contrast .hero h2,
-.a11y-contrast .hero p,
-.a11y-contrast .hero span {
+.a11y-contrast .hero * {
   color: #ffffff !important;
 }
 .a11y-contrast .hero button {
@@ -294,62 +427,6 @@ html.a11y-contrast,
 .a11y-contrast .hero button svg {
   color: #000000 !important;
 }
-.a11y-contrast header {
-  border-bottom: 2px solid #000000 !important;
-}
-.a11y-contrast .a11ycontrols button {
-  border: 2px solid #000000 !important;
-}
-.a11y-contrast .a11ycontrols button.on {
-  background: #000000 !important;
-  color: #ffffff !important;
-}
-
-/* ── Wisdom Mirror — design principles in older tongues ───────────────────── */
-.wisdom{background:#fdf6ec;border:1px solid #eeddb8;border-left:3px solid #d9a441;border-radius:12px;padding:18px;margin:6px 0 4px}
-.wisdom h3{margin:0 0 10px;color:#7a5410}
-.wisdom h3 svg{color:#b07d10;position:relative;top:1px}
-.wisdomsrc{font-size:11px;letter-spacing:1.1px;font-weight:700;color:#8a5f14;margin:0 0 6px;text-transform:uppercase}
-.wisdomverse{font-size:14.5px;line-height:1.6;color:#6b4a1c;font-family:Manrope,sans-serif;font-weight:700;margin:0 0 10px}
-.wisdomtext{font-size:14.5px;line-height:1.65;color:#4a3f28;margin:0 0 8px}
-.wisdomnote{font-size:12.5px;color:#6b5a35;font-style:italic;margin:0}
-@media(forced-colors:active){
-  .wisdom,.mentalbanner,.casestudy,.trapbox{border:2px solid ButtonBorder!important}
-}
-
-/* ── Kaizen Mode — Principle of the Day & spaced revision ─────────────────── */
-.dailycard{background:#fffdf7;border-left:3px solid #d9a441}
-.dosehead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.streakchip{display:inline-flex;align-items:center;gap:6px;background:#fff3df;color:#8a5208;font-size:12px;font-weight:700;border:1px solid #eadbb8;border-radius:999px;padding:7px 12px;white-space:nowrap}
-.streakchip svg{color:#d97b06}
-.dailycard h2{margin:0 0 10px}
-.dosemodel{font-family:Manrope,sans-serif;font-weight:600;font-size:15.5px;color:#2c3a58;background:#f6f3ea;border:1px solid #eee7d2;border-radius:8px;padding:12px 14px;margin:0 0 12px;line-height:1.55}
-.dosewisdom{display:flex;gap:7px;align-items:center;font-size:12px;color:#8a5f14;font-weight:700;margin:0 0 15px}
-.dosewisdom svg{flex-shrink:0;color:#b07d10}
-.s-ref{background:#fde8e8;color:#9c1f1f}
-.pdot.ref{background:#c62828}
-
-/* ── Skill Drills — 15–20 min hands-on practice ───────────────────────────── */
-.drillcard{border-left:3px solid #4359df;background:#fbfcff}
-.minutabadge{display:inline-flex;align-items:center;gap:6px;background:#eef1fc;color:#3d52c9;font-size:12px;font-weight:700;border:1px solid #dfe4f8;border-radius:999px;padding:7px 12px;white-space:nowrap}
-.drillcard h2{margin:0 0 8px}
-.drillbrief{font-size:14.5px;line-height:1.65;color:#435272;margin:0 0 12px}
-.drillsteps{margin:0 0 12px;padding-left:22px;display:grid;gap:7px;font-size:14px;color:#3c4a60;line-height:1.55}
-.drillsteps li::marker{color:#8190ae;font-weight:700}
-.drilldeliver{font-size:13px;background:#f2f5fc;border:1px solid #e2e8f6;border-radius:8px;padding:10px 13px;color:#3d4c6d;margin:0 0 16px;line-height:1.5}
-.drilltimer{display:inline-flex;align-items:center;gap:4px;background:#202c65;color:#fff;border-radius:10px;padding:6px 8px 6px 14px;font-variant-numeric:tabular-nums;font-family:Manrope,sans-serif;font-weight:700;font-size:20px;letter-spacing:-.5px}
-.ghostbtn{background:transparent;border:1px solid transparent;color:#c6cfef;min-width:40px;min-height:40px;padding:7px;border-radius:8px}
-.ghostbtn:hover{background:rgba(255,255,255,.12);filter:none}
-.weekdots{display:flex;gap:6px;align-items:center;margin-top:16px}
-.weekdot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#eef1f6;color:#8c99ad;font-size:11px;font-weight:700;user-select:none}
-.weekdot.done{background:#e2f3e9;color:#166e43;border:1px solid #bfe3cf}
-.weekdot.today{border:1.5px dashed #a97d10}
-.weekdot.done.today{border-style:solid}
-@media(max-width:650px){.drilltimer{font-size:17px}}
-
-
-
-
 
 /* ── WCAG AAA & Authentication Modal Styles ─────────────────────────────── */
 .authuserchip{display:inline-flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #cbd5e1;border-radius:999px;padding:4px 10px 4px 4px;font-size:12px;font-weight:600;color:#1e293b}
