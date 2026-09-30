@@ -101,6 +101,86 @@ export default function Studio(){
   const [sahayakChat,setSahayakChat]=useState<SahayakMessage[]>([]);
   const [sahayakInput,setSahayakInput]=useState('');
   const sahayakChatRef=useRef<HTMLDivElement>(null);
+  // Voice & Ears state
+  const [isListening,setIsListening]=useState(false);
+  const [speakingId,setSpeakingId]=useState<string|null>(null);
+  const [autoVoice,setAutoVoice]=useState(false);
+  const recognitionRef=useRef<any>(null);
+
+  function cleanTextForSpeech(text:string):string{
+    return text
+      .replace(/\*\*(.*?)\*\*/g,'$1')
+      .replace(/\*(.*?)\*/g,'$1')
+      .replace(/•/g,'')
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu,'')
+      .replace(/[`_#]/g,'')
+      .trim();
+  }
+
+  function speakSahayakText(msgId:string,text:string){
+    if(!('speechSynthesis' in window)){
+      setNotice('Voice speech synthesis is not supported on this browser.');
+      return;
+    }
+    if(speakingId===msgId){
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const clean=cleanTextForSpeech(text);
+    const utter=new SpeechSynthesisUtterance(clean);
+    utter.rate=0.94;
+    utter.pitch=1.04;
+    const voices=window.speechSynthesis.getVoices();
+    const femaleVoice=voices.find(v=>
+      (v.name.includes('Female')||v.name.includes('Samantha')||v.name.includes('Google UK English Female')||v.name.includes('Karen')||v.name.includes('Victoria')||v.name.includes('Zira')||v.name.includes('Natural'))&&v.lang.startsWith('en')
+    )||voices.find(v=>v.lang.startsWith('en'));
+    if(femaleVoice)utter.voice=femaleVoice;
+    utter.onend=()=>setSpeakingId(null);
+    utter.onerror=()=>setSpeakingId(null);
+    setSpeakingId(msgId);
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopSpeaking(){
+    if('speechSynthesis' in window){
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingId(null);
+  }
+
+  function startListening(){
+    const SpeechRec=(window as any).SpeechRecognition||(window as any).webkitSpeechRecognition;
+    if(!SpeechRec){
+      setNotice('Speech recognition is not available in this browser. Please type or use Chrome/Edge.');
+      return;
+    }
+    try{
+      const rec=new SpeechRec();
+      rec.continuous=false;
+      rec.interimResults=true;
+      rec.lang='en-US';
+      rec.onstart=()=>setIsListening(true);
+      rec.onresult=(e:any)=>{
+        const transcript=Array.from(e.results).map((r:any)=>r[0].transcript).join('');
+        setSahayakInput(transcript);
+      };
+      rec.onend=()=>setIsListening(false);
+      rec.onerror=()=>setIsListening(false);
+      recognitionRef.current=rec;
+      rec.start();
+    }catch{
+      setIsListening(false);
+    }
+  }
+
+  function stopListening(){
+    if(recognitionRef.current){
+      try{recognitionRef.current.stop();}catch{}
+    }
+    setIsListening(false);
+  }
 
   function openSahayak(topicId:string,initialMode:SahayakDialecticMode='bridge'){
     setSahayakTopicId(topicId);
@@ -131,6 +211,9 @@ export default function Studio(){
     const nextChat=[...sahayakChat,userMsg,evalMsg];
     setSahayakChat(nextChat);
     setSahayakInput('');
+    if(autoVoice){
+      speakSahayakText(evalMsg.id,evalMsg.content);
+    }
     try{
       localStorage.setItem(`sahayak_chat_${sahayakTopicId}`,JSON.stringify(nextChat));
     }catch{}
@@ -163,17 +246,21 @@ export default function Studio(){
 
   function sendSahayakMessage(){
     if(!sahayakInput.trim())return;
+    const text=sahayakInput.trim();
     const userMsg:SahayakMessage={
       id:`user_${Date.now()}`,
       role:'user',
-      content:sahayakInput.trim(),
+      content:text,
       mode:sahayakMode,
       timestamp:Date.now()
     };
-    const evalMsg=evaluateSahayakReflection(sahayakTopicId,sahayakInput.trim(),sahayakMode);
+    const evalMsg=evaluateSahayakReflection(sahayakTopicId,text,sahayakMode);
     const nextChat=[...sahayakChat,userMsg,evalMsg];
     setSahayakChat(nextChat);
     setSahayakInput('');
+    if(autoVoice){
+      speakSahayakText(evalMsg.id,evalMsg.content);
+    }
     try{
       localStorage.setItem(`sahayak_chat_${sahayakTopicId}`,JSON.stringify(nextChat));
     }catch{}
@@ -1170,14 +1257,34 @@ export default function Studio(){
               <p className="sahayak-tagline">Socratic Design Sparring · Practice thinking, not memorizing</p>
             </div>
           </div>
-          <button 
-            type="button" 
-            className="ghostbtn close-sahayak" 
-            onClick={()=>setSahayakOpen(false)} 
-            aria-label="Close Studio Sahayak"
-          >
-            <X size={18}/>
-          </button>
+          <div className="sahayak-header-actions">
+            <button 
+              type="button" 
+              className={autoVoice?"sahayak-voice-toggle on":"sahayak-voice-toggle"}
+              onClick={()=>{
+                const next=!autoVoice;
+                setAutoVoice(next);
+                if(!next)stopSpeaking();
+              }}
+              title={autoVoice?"Auto-voice is ON (Tap to mute)":"Auto-voice is OFF (Tap to speak automatically)"}
+              aria-pressed={autoVoice}
+            >
+              <Volume2 size={14} aria-hidden="true"/>
+              <span>{autoVoice?'Voice ON':'Voice OFF'}</span>
+            </button>
+            <button 
+              type="button" 
+              className="ghostbtn close-sahayak" 
+              onClick={()=>{
+                stopSpeaking();
+                stopListening();
+                setSahayakOpen(false);
+              }} 
+              aria-label="Close Studio Sahayak"
+            >
+              <X size={18}/>
+            </button>
+          </div>
         </div>
 
         {(()=>{
@@ -1238,16 +1345,54 @@ export default function Studio(){
                 </div>
               )}
               <div className="sahayak-msg-bubble">
-                {msg.pramanaTag&&(
-                  <span className="pramana-badge">
-                    प्रमाण · {msg.pramanaTag}
-                  </span>
+                {msg.role==='sahayak'&&(
+                  <div className="msg-header-row">
+                    <div className="badges-group">
+                      {msg.designTerm&&(
+                        <span className="design-term-pill">
+                          <Lightbulb size={11} aria-hidden="true"/> {msg.designTerm}
+                        </span>
+                      )}
+                      {msg.pramanaTag&&(
+                        <span className="pramana-badge">
+                          {msg.pramanaTag}
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      type="button" 
+                      className={speakingId===msg.id?"msg-listen-btn active":"msg-listen-btn"}
+                      onClick={()=>speakSahayakText(msg.id,msg.content)}
+                      aria-label={speakingId===msg.id?"Stop reading message aloud":"Listen to response aloud"}
+                    >
+                      <Volume2 size={12} aria-hidden="true"/>
+                      <span>{speakingId===msg.id?'Stop':'Listen'}</span>
+                    </button>
+                  </div>
                 )}
                 <div className="msg-text">
                   {msg.content.split('\n\n').map((paragraph,i)=>(
                     <p key={i}>{paragraph}</p>
                   ))}
                 </div>
+                {msg.role==='sahayak'&&msg.carryOnBranches&&msg.carryOnBranches.length>0&&(
+                  <div className="msg-branches" role="group" aria-label="Carry on the conversation">
+                    <span className="branches-label">Carry on the discussion:</span>
+                    <div className="branch-chips">
+                      {msg.carryOnBranches.map((branch,bi)=>(
+                        <button 
+                          key={bi} 
+                          type="button" 
+                          className="branch-chip"
+                          onClick={()=>handleStarterClick(branch)}
+                        >
+                          <span className="branch-arrow" aria-hidden="true">👉</span>
+                          <span>{branch}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <span className="msg-time">
                   {new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
                 </span>
@@ -1291,14 +1436,26 @@ export default function Studio(){
             }}
           />
           <div className="sahayak-input-actions">
-            <button 
-              type="button" 
-              className="ghostbtn sahayak-clear" 
-              onClick={clearSahayakChat}
-              title="Restart dialectic"
-            >
-              <RotateCcw size={14}/> Reset
-            </button>
+            <div className="input-left-tools">
+              <button 
+                type="button" 
+                className={isListening?"sahayak-mic-btn listening":"sahayak-mic-btn"}
+                onClick={isListening?stopListening:startListening}
+                aria-label={isListening?"Stop listening":"Speak your thought"}
+                title={isListening?"Listening... (Tap to stop)":"Tap to speak into microphone"}
+              >
+                <Mic size={15} aria-hidden="true"/>
+                <span>{isListening?'Listening…':'Speak'}</span>
+              </button>
+              <button 
+                type="button" 
+                className="ghostbtn sahayak-clear" 
+                onClick={clearSahayakChat}
+                title="Restart conversation"
+              >
+                <RotateCcw size={13}/> Reset
+              </button>
+            </div>
             <button 
               type="button" 
               className="sahayak-send-btn" 

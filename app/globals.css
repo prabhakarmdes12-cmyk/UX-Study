@@ -1588,3 +1588,231 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   background: #000000 !important;
   color: #ffffff !important;
 }
+
+
+/* ── Sahayak Voice & Ears Ergonomics ────────────────────────────────────────── */
+.sahayak-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sahayak-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #1e293b;
+  color: #94a3b8 !important;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 36px;
+}
+.sahayak-voice-toggle:hover {
+  background: #334155;
+  color: #ffffff !important;
+}
+.sahayak-voice-toggle.on {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.msg-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.badges-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.design-term-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 4px;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.msg-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 28px;
+  transition: all 0.15s ease;
+}
+.msg-listen-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a !important;
+}
+.msg-listen-btn.active {
+  background: #1e3a8a;
+  color: #ffffff !important;
+  border-color: #172554;
+  animation: pulseListen 1.5s infinite;
+}
+
+@keyframes pulseListen {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Carry-On Branches (No Dead Ends) */
+.msg-branches {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.branches-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+.branch-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.branch-chip {
+  text-align: left;
+  background: #ffffff;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  transition: all 0.12s ease;
+}
+.branch-chip:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8 !important;
+  transform: translateX(2px);
+}
+.branch-arrow {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+/* Speech Mic Button */
+.input-left-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sahayak-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  color: #1e293b !important;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.15s ease;
+}
+.sahayak-mic-btn:hover {
+  background: #e2e8f0;
+}
+.sahayak-mic-btn.listening {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  animation: micPulse 1s infinite;
+}
+
+@keyframes micPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* High Contrast Mode for Voice & Ears */
+.a11y-contrast .sahayak-voice-toggle {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .sahayak-voice-toggle.on {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.a11y-contrast .design-term-pill {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #000000 !important;
+}
+.a11y-contrast .msg-listen-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .msg-listen-btn.active {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.a11y-contrast .branch-chip {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .branch-chip:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.a11y-contrast .sahayak-mic-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .sahayak-mic-btn.listening {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
