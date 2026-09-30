@@ -122,12 +122,188 @@ html.a11y-xl{zoom:1.22}
 .a11y-read body{line-height:1.7}
 .a11y-read p,.a11y-read li,.a11y-read textarea{letter-spacing:.012em}
 .a11y-read .script,.a11y-read .lede,.a11y-read .tcsum,.a11y-read .casestudy p,.a11y-read .wisdomtext,.a11y-read .wisdomverse,.a11y-read .principlelist li{line-height:1.9!important}
-.a11y-contrast body{color:#0b1220;background:#ffffff}
-.a11y-contrast .muted,.a11y-contrast .smalltext,.a11y-contrast .tcsum,.a11y-contrast .sayhint,.a11y-contrast .statusnote,.a11y-contrast .flashhint,.a11y-contrast .topicnum,.a11y-contrast .lede,.a11y-contrast .cleanlist,.a11y-contrast .privacytext,.a11y-contrast .duration,.a11y-contrast .notebottom span,.a11y-contrast .sourcespan,.a11y-contrast .casestudy p,.a11y-contrast .trapgrid p,.a11y-contrast .filters label,.a11y-contrast .wisdomtext,.a11y-contrast .wisdomnote,.a11y-contrast .lesson>p,.a11y-contrast .daycard,.a11y-contrast footer{color:#1c2b3f!important}
-.a11y-contrast .panel,.a11y-contrast .topiccard,.a11y-contrast .chip,.a11y-contrast .progpill,.a11y-contrast .challengeitem,.a11y-contrast .daycard,.a11y-contrast .sayaloud,.a11y-contrast .lessonmenu{border-color:#8b99ad!important}
-.a11y-contrast a{color:#1d4ed8;text-decoration:underline}
-.a11y-contrast .statusbadge,.a11y-contrast .domtag,.a11y-contrast .tag{border:1px solid currentColor}
-.a11y-contrast .answerpath span,.a11y-contrast .threeways>div{border-color:#94a3b8}
+/* ── True WCAG AAA High-Contrast Mode (21:1 Contrast Ratio) ──────────────── */
+html.a11y-contrast,
+.a11y-contrast body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.a11y-contrast .shell,
+.a11y-contrast .sidebar,
+.a11y-contrast main,
+.a11y-contrast .panel,
+.a11y-contrast .dailycard,
+.a11y-contrast .drillcard,
+.a11y-contrast .topiccard,
+.a11y-contrast .challengeworkspace,
+.a11y-contrast .challengeitem,
+.a11y-contrast .daycard,
+.a11y-contrast .authmodal,
+.a11y-contrast .lesson,
+.a11y-contrast .resource,
+.a11y-contrast .inset,
+.a11y-contrast .casestudy,
+.a11y-contrast .wisdom,
+.a11y-contrast .trapbox,
+.a11y-contrast .sayaloud {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+}
+
+.a11y-contrast h1,
+.a11y-contrast h2,
+.a11y-contrast h3,
+.a11y-contrast p,
+.a11y-contrast span:not(.hero *):not(.drilltimer *):not(.active *):not(.chosen *),
+.a11y-contrast strong,
+.a11y-contrast .muted,
+.a11y-contrast .smalltext,
+.a11y-contrast .eyebrow,
+.a11y-contrast .drillbrief,
+.a11y-contrast .tcsum,
+.a11y-contrast .quote,
+.a11y-contrast label,
+.a11y-contrast .notebottom span,
+.a11y-contrast .headercrumb,
+.a11y-contrast .navlabel {
+  color: #000000 !important;
+}
+
+.a11y-contrast .sidebar nav button {
+  color: #000000 !important;
+  border: 1px solid transparent !important;
+  font-weight: 600 !important;
+}
+
+.a11y-contrast .sidebar nav button.active {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+  font-weight: 800 !important;
+}
+.a11y-contrast .sidebar nav button.active svg {
+  color: #ffffff !important;
+}
+
+.a11y-contrast .secondary,
+.a11y-contrast .iconbutton,
+.a11y-contrast .ghostbtn,
+.a11y-contrast .closebtn,
+.a11y-contrast .textbutton {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  font-weight: 700 !important;
+}
+
+.a11y-contrast button:not(.secondary):not(.textbutton):not(.ghostbtn):not(.checkbutton):not(.ghostsignout):not(.modaltabs button) {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+  font-weight: 800 !important;
+}
+.a11y-contrast button:not(.secondary):not(.textbutton):not(.ghostbtn):not(.checkbutton):not(.ghostsignout):not(.modaltabs button) svg {
+  color: #ffffff !important;
+}
+
+.a11y-contrast button:hover {
+  text-decoration: underline !important;
+}
+
+.a11y-contrast a {
+  color: #0000ee !important;
+  text-decoration: underline !important;
+  font-weight: 700 !important;
+}
+
+.a11y-contrast input,
+.a11y-contrast select,
+.a11y-contrast textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+
+.a11y-contrast input:focus,
+.a11y-contrast select:focus,
+.a11y-contrast textarea:focus,
+.a11y-contrast button:focus-visible,
+.a11y-contrast a:focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px #facc15 !important;
+}
+
+.a11y-contrast .checkbutton {
+  border: 2px solid #000000 !important;
+  background: #ffffff !important;
+}
+.a11y-contrast .checkbutton.checked {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.a11y-contrast .checkbutton.checked svg {
+  color: #ffffff !important;
+}
+
+.a11y-contrast .tag,
+.a11y-contrast .statusbadge,
+.a11y-contrast .chip,
+.a11y-contrast .domtag,
+.a11y-contrast .streakchip,
+.a11y-contrast .minutabadge,
+.a11y-contrast .progpill {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  font-weight: 800 !important;
+}
+
+.a11y-contrast .chip.chosen,
+.a11y-contrast .segmented .chosen,
+.a11y-contrast .storytabs .chosen {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .chip.chosen span {
+  background: rgba(255,255,255,0.3) !important;
+  color: #ffffff !important;
+}
+
+.a11y-contrast .hero,
+.a11y-contrast .mentalbanner,
+.a11y-contrast .drilltimer {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .hero h2,
+.a11y-contrast .hero p,
+.a11y-contrast .hero span {
+  color: #ffffff !important;
+}
+.a11y-contrast .hero button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .hero button svg {
+  color: #000000 !important;
+}
+.a11y-contrast header {
+  border-bottom: 2px solid #000000 !important;
+}
+.a11y-contrast .a11ycontrols button {
+  border: 2px solid #000000 !important;
+}
+.a11y-contrast .a11ycontrols button.on {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
 
 /* ── Wisdom Mirror — design principles in older tongues ───────────────────── */
 .wisdom{background:#fdf6ec;border:1px solid #eeddb8;border-left:3px solid #d9a441;border-radius:12px;padding:18px;margin:6px 0 4px}
