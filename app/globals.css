@@ -173,3 +173,53 @@ html.a11y-xl{zoom:1.22}
 
 
 
+
+
+/* ── WCAG AAA & Authentication Modal Styles ─────────────────────────────── */
+.authuserchip{display:inline-flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #cbd5e1;border-radius:999px;padding:4px 10px 4px 4px;font-size:12px;font-weight:600;color:#1e293b}
+.useravatar{width:28px;height:28px;border-radius:50%;background:#1e3a8a;color:#ffffff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.userinfo{display:flex;align-items:center;gap:6px}
+.username{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adminbadge{background:#dbeafe;color:#1e40af;font-size:10px;font-weight:800;letter-spacing:.6px;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.ghostsignout{background:transparent;border:0;color:#64748b;padding:4px;border-radius:4px;display:grid;place-items:center;min-width:32px;min-height:32px;cursor:pointer}
+.ghostsignout:hover{background:#f1f5f9;color:#0f172a}
+.signinbtn{display:inline-flex;align-items:center;gap:7px;background:#1e3a8a;color:#ffffff;border:0;border-radius:8px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px}
+.signinbtn:hover{background:#172554}
+.authoverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.72);backdrop-filter:blur(4px);z-index:9998;display:grid;place-items:center;padding:16px}
+.authmodal{background:#ffffff;border:1px solid #cbd5e1;border-radius:18px;max-width:480px;width:100%;padding:28px;box-shadow:0 25px 60px rgba(15,23,42,0.3);position:relative;z-index:9999;color:#0f172a}
+.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modalhead h2{margin:0;font-size:22px;color:#0f172a}
+.closebtn{background:transparent;border:0;color:#64748b;padding:8px;border-radius:8px;min-width:44px;min-height:44px;cursor:pointer;display:grid;place-items:center}
+.closebtn:hover{background:#f1f5f9;color:#0f172a}
+.modaltabs{display:flex;background:#f1f5f9;border-radius:10px;padding:4px;gap:4px;margin-bottom:20px}
+.modaltabs button{flex:1;background:transparent;color:#475569;border:0;border-radius:7px;padding:10px 8px;font-size:13px;font-weight:700;min-height:44px;cursor:pointer}
+.modaltabs button.active{background:#ffffff;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.authform{display:grid;gap:14px}
+.authlabel{display:block;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px}
+.authinput{width:100%;border:1.5px solid #cbd5e1;border-radius:9px;padding:12px 14px;font-size:15px;color:#0f172a;background:#ffffff;min-height:48px}
+.authinput:focus{outline:3px solid #1d4ed8!important;outline-offset:2px!important}
+.autherror{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.authsubmit{background:#1d4ed8;color:#ffffff;border:0;border-radius:9px;padding:13px 18px;font-size:14px;font-weight:700;min-height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.authsubmit:hover{background:#1e40af}
+.authhint{font-size:12px;color:#475569;line-height:1.55;margin:4px 0 0}
+.googlebtn{display:flex;align-items:center;justify-content:center;gap:12px;background:#ffffff;color:#0f172a;border:1.5px solid #cbd5e1;border-radius:9px;padding:13px 18px;font-size:14px;font-weight:700;width:100%;min-height:48px;cursor:pointer;text-decoration:none}
+.googlebtn:hover{background:#f8fafc;border-color:#94a3b8}
+.googleinfo{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;font-size:12.5px;color:#334155;line-height:1.6;margin-top:12px}
+.googleinfo code{background:#e2e8f0;padding:2px 5px;border-radius:4px;font-family:monospace;font-size:11.5px;color:#0f172a}
+.emailtext{font-size:11.5px;color:#475569;word-break:break-all}
+.roletext{font-size:11px;color:#1e40af;font-weight:700}
+
+/* Enhanced WCAG AAA Contrast across all elements */
+body{color:#0f172a;line-height:1.6}
+.muted,.smalltext{color:#334155!important}
+.eyebrow{color:#1e293b!important}
+.secondary{color:#1e293b;border-color:#94a3b8}
+.secondary:hover{background:#f1f5f9;color:#0f172a}
+.tcsum{color:#334155!important}
+.drillbrief{color:#334155!important}
+.cleanlist{color:#1e293b!important}
+.lesson>p{color:#1e293b!important}
+p{color:#1e293b}
+a{color:#1d4ed8;font-weight:600}
+a:hover{color:#1e40af;text-decoration:underline}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #1d4ed8!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(37,99,235,0.4)!important}

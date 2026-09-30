@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
-import {BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,Download,Eye,EyeOff,Flame,FlaskConical,Gauge,GraduationCap,Keyboard,LayoutDashboard,MessageCircle,Mic,Pause,PenLine,PencilRuler,Play,Plus,RotateCcw,Search,ShieldCheck,Square,Target,Timer,TrendingUp,Volume2,Wrench,Accessibility,Sparkles} from 'lucide-react';
+import {BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,Download,Eye,EyeOff,Flame,FlaskConical,Gauge,GraduationCap,Keyboard,LayoutDashboard,MessageCircle,Mic,Pause,PenLine,PencilRuler,Play,Plus,RotateCcw,Search,ShieldCheck,Square,Target,Timer,TrendingUp,Volume2,Wrench,Accessibility,Sparkles,KeyRound,LogOut,Lock,X,ShieldAlert} from 'lucide-react';
 import {pilot,phases,roadmap,interruptions,behaviors,challenges,critiques,mockLoops,lessons,resources,uxDomains,uxEncyclopedia,wisdomMirrors,drillCycle} from './content';
 import type {DrillTrack} from './content';
 type Entries=Record<string,any>;
@@ -24,6 +24,9 @@ const emptyStatus:StatusMap={};
 const emptyMap:Record<string,string>={};
 function parseStatusMap(raw:string|null):StatusMap{const out:StatusMap={};if(!raw)return out;try{const o=JSON.parse(raw);if(o&&typeof o==='object'){for(const k of Object.keys(o)){if(o[k]==='reviewing'||o[k]==='mastered')out[k]=o[k];}}}catch{/* malformed storage: start fresh */}return out;}
 function parseStringMap(raw:string|null):Record<string,string>{const out:Record<string,string>={};if(!raw)return out;try{const o=JSON.parse(raw);if(o&&typeof o==='object'){for(const k of Object.keys(o)){if(typeof o[k]==='string')out[k]=o[k];}}}catch{/* malformed storage: start fresh */}return out;}
+
+function parseAnyMap(raw:string|null):Record<string,any>{const out:Record<string,any>={};if(!raw)return out;try{const o=JSON.parse(raw);if(o&&typeof o==='object')return o;}catch{}return out;}
+const localEntriesStore=makeStore<Record<string,any>>('uxStudioEntries',{},parseAnyMap);
 const statusStore=makeStore<StatusMap>('uxEncyStatus',emptyStatus,parseStatusMap);
 const timesStore=makeStore<Record<string,string>>('uxEncyTimes',{},parseStringMap);
 const doseStore=makeStore<Record<string,string>>('uxDoseLog',{},parseStringMap);
@@ -55,7 +58,126 @@ export default function Studio(){
  const drillTimerEnd=useRef(0);
  const [limit,setLimit]=useState(120),[elapsed,setElapsed]=useState(0),[running,setRunning]=useState(false),[recording,setRecording]=useState(false),[audio,setAudio]=useState<Blob|null>(null),[audioUrl,setAudioUrl]=useState(''),[audioSaved,setAudioSaved]=useState(false),[recordError,setRecordError]=useState(''),[micPending,setMicPending]=useState(false);
  const recorder=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),chunks=useRef<Blob[]>([]),started=useRef(0),recordTimeout=useRef<ReturnType<typeof setTimeout>|null>(null);
- async function load(){setError('');try{const r=await fetch('/api/entries');if(r.status===401){setSignedOut(true);throw new Error('Sign in to save notes, recordings, and progress. You can still explore the exercises.');}if(!r.ok)throw new Error('Saved practice is unavailable. Your current drafts remain on this screen.');const data:Entries=await r.json();setEntries(data);const remote=data.encyc_topics as StatusMap|undefined;if(remote&&typeof remote==='object'){const merged={...statusStore.read()};for(const k of Object.keys(remote)){if(remote[k]==='reviewing'||remote[k]==='mastered')merged[k]=remote[k];}statusStore.write(merged);}const remoteTimes=data.encyc_times as Record<string,string>|undefined;if(remoteTimes&&typeof remoteTimes==='object'){timesStore.write({...timesStore.read(),...remoteTimes});}const dlog={...doseStore.read()};for(const k of Object.keys(data)){if(k.startsWith('dose_')&&data[k]&&typeof data[k].topic==='string')dlog[k.slice(5)]=data[k].topic;}doseStore.write(dlog);const rlog={...drillStore.read()};for(const k of Object.keys(data)){if(k.startsWith('drill_')&&data[k]&&typeof data[k].drill==='string')rlog[k.slice(6)]=data[k].drill;}drillStore.write(rlog);setLoaded(true);setSignedOut(false);}catch(e:any){setError(e.message);}}
+  const [user,setUser]=useState<{email:string,name:string,role:string}|null>(null);
+  const [authModalOpen,setAuthModalOpen]=useState(false);
+  const [authTab,setAuthTab]=useState<'passcode'|'google'>('passcode');
+  const [passcodeInput,setPasscodeInput]=useState('prabhakar2026');
+  const [passcodeError,setPasscodeError]=useState('');
+  const [passcodeLoading,setPasscodeLoading]=useState(false);
+  const [googleConfigured,setGoogleConfigured]=useState(false);
+  const [authNotice,setAuthNotice]=useState('');
+ 
+  async function checkAuthSession(){
+    try{
+      const r=await fetch('/api/auth/session');
+      if(r.ok){
+        const d:any=await r.json();
+        setGoogleConfigured(!!d.googleConfigured);
+        if(d.authenticated&&d.user){
+          setUser(d.user);
+          return d.user;
+        }
+      }
+    }catch{}
+    setUser(null);
+    return null;
+  }
+
+  async function loginPasscode(e?:React.FormEvent){
+    if(e)e.preventDefault();
+    setPasscodeError('');
+    setPasscodeLoading(true);
+    try{
+      const r=await fetch('/api/auth/passcode',{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({passcode:passcodeInput})
+      });
+      const d:any=await r.json();
+      if(!r.ok||!d.ok){
+        throw new Error(d.error||'Incorrect passcode');
+      }
+      setUser(d.user);
+      setAuthModalOpen(false);
+      setNotice('Welcome back, Prabhakar! Studio unlocked with admin access.');
+      // Sync local entries to cloud
+      const local=localEntriesStore.read();
+      for(const k of Object.keys(local)){
+        fetch('/api/entries',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:k,value:local[k]})}).catch(()=>{});
+      }
+      load();
+    }catch(err:any){
+      setPasscodeError(err.message||'Authentication failed');
+    }finally{
+      setPasscodeLoading(false);
+    }
+  }
+
+  async function signOutUser(){
+    try{
+      await fetch('/api/auth/session',{method:'DELETE'});
+    }catch{}
+    setUser(null);
+    setNotice('Signed out. Your practice notes remain saved locally on this device.');
+  }
+
+  async function load(){
+    setError('');
+    // Initialise from local persistent storage so content is never blank
+    const local=localEntriesStore.read();
+    setEntries(local);
+    setLoaded(true);
+
+    const currentUser=await checkAuthSession();
+
+    // Check for auth errors in URL (e.g. unauthorized Google account)
+    if(typeof window!=='undefined'){
+      const params=new URLSearchParams(window.location.search);
+      const authErr=params.get('auth_error');
+      if(authErr==='unauthorized'){
+        const att=params.get('attempted');
+        setAuthNotice(`Access restricted: ${att||'This account'} is not authorized. Only prabhakarmdes12@gmail.com has admin access.`);
+      } else if(window.location.hash==='#signed_in'){
+        setNotice('Successfully signed in with Google as Admin!');
+      }
+    }
+
+    try{
+      const r=await fetch('/api/entries');
+      if(r.ok){
+        const serverData:any=await r.json();
+        const merged={...local,...serverData};
+        setEntries(merged);
+        localEntriesStore.write(merged);
+
+        const remote=serverData.encyc_topics as StatusMap|undefined;
+        if(remote&&typeof remote==='object'){
+          const mStatus={...statusStore.read()};
+          for(const k of Object.keys(remote)){
+            if(remote[k]==='reviewing'||remote[k]==='mastered')mStatus[k]=remote[k];
+          }
+          statusStore.write(mStatus);
+        }
+        const remoteTimes=serverData.encyc_times as Record<string,string>|undefined;
+        if(remoteTimes&&typeof remoteTimes==='object'){
+          timesStore.write({...timesStore.read(),...remoteTimes});
+        }
+        const dlog={...doseStore.read()};
+        for(const k of Object.keys(serverData)){
+          if(k.startsWith('dose_')&&serverData[k]&&typeof serverData[k].topic==='string')dlog[k.slice(5)]=serverData[k].topic;
+        }
+        doseStore.write(dlog);
+        const rlog={...drillStore.read()};
+        for(const k of Object.keys(serverData)){
+          if(k.startsWith('drill_')&&serverData[k]&&typeof serverData[k].drill==='string')rlog[k.slice(6)]=serverData[k].drill;
+        }
+        drillStore.write(rlog);
+      }
+    }catch(e:any){
+      // Cloud sync unavailable; local mode active
+    }
+  }
+
  useEffect(()=>{load();},[]);
  useEffect(()=>{const key=window.location.hash.slice(1);if(navigation.some(x=>x[0]===key))setView(key);},[]);
  useEffect(()=>{if(!running)return;const t=setInterval(()=>setElapsed(v=>Math.min(v+1,limit)),1000);return()=>clearInterval(t)},[running,limit]);
@@ -66,7 +188,32 @@ export default function Studio(){
  useEffect(()=>()=>{if(audioUrl)URL.revokeObjectURL(audioUrl)},[audioUrl]);
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(t)},[notice]);
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(Object.keys(drafts).length||(audio&&!audioSaved)||recording){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn)},[drafts,audio,audioSaved,recording]);
- async function save(key:string,value:any){if(!loaded){setError('Load your saved practice or sign in before saving. Your draft is still here.');return false;}setBusy(b=>[...b,key]);setError('');try{const r=await fetch('/api/entries',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key,value})});if(!r.ok)throw new Error('Could not save. Your draft is still here; please retry.');setEntries(p=>({...p,[key]:value}));setDrafts(d=>{const n={...d};if(JSON.stringify(n[key])===JSON.stringify(value))delete n[key];return n;});setNotice('Saved to your private practice space.');return true;}catch(e:any){setError(e.message);return false;}finally{setBusy(b=>b.filter(k=>k!==key));}}
+ 
+  async function save(key:string,value:any){
+    // 1. Immediately persist locally (never blocked)
+    const nextLocal={...localEntriesStore.read(),[key]:value};
+    localEntriesStore.write(nextLocal);
+    setEntries(p=>({...p,[key]:value}));
+    setDrafts(d=>{const n={...d};if(JSON.stringify(n[key])===JSON.stringify(value))delete n[key];return n;});
+
+    // 2. If signed in, sync to cloud
+    if(user){
+      setBusy(b=>[...b,key]);
+      try{
+        const r=await fetch('/api/entries',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key,value})});
+        if(!r.ok)throw new Error('Cloud sync failed');
+        setNotice('Saved to your private practice space.');
+      }catch{
+        setNotice('Saved on this device. Will sync to cloud next time you connect.');
+      }finally{
+        setBusy(b=>b.filter(k=>k!==key));
+      }
+    } else {
+      setNotice('Saved on this device. Sign in anytime to sync to the cloud.');
+    }
+    return true;
+  }
+
  function nav(v:string){if(recording&&v!=='speak'){setNotice('Stop your recording before switching sections.');return;}setView(v);window.location.hash=v;window.scrollTo({top:0,behavior:'smooth'});}
  const current=roadmap[day-1],p=day<=7?pilot[day-1]:{title:current.topic,focus:current.phase,speak:`Explain ${current.topic.toLowerCase()} through one verified project decision. Include evidence, an alternative, a trade-off, and a learning.`,recall:`Explain the key decision involved in ${current.topic.toLowerCase()} without notes. Give one example and one limitation.`,challenge:challenges[(day-8)%challenges.length].prompt,craft:`Apply ${current.topic.toLowerCase()} to a screen or flow you know. Sketch two alternatives, include an edge state, and defend the choice.`,story:`Connect ${current.topic.toLowerCase()} to a real project. Explain your role, a hard decision, its evidence, and what you cannot claim.`,social:pilot[(day-1)%7].social,review:'Review one recording or sketch. Identify one specific improvement, then retry. Ask a peer for feedback at least once this week.'};
  const tasks=[{key:'recall',name:'Recall without notes',desc:'Explain one idea in plain language.',minutes:5,icon:BookOpen,prompt:p.recall},{key:'challenge',name:'Think through a design problem',desc:'Frame it. Explore options. Choose.',minutes:10,icon:FlaskConical,prompt:p.challenge},{key:'craft',name:'Make one interaction better',desc:'Sketch the detail and defend it.',minutes:10,icon:Target,prompt:p.craft},{key:'story',name:'Defend a portfolio decision',desc:'Make your own contribution clear.',minutes:10,icon:MessageCircle,prompt:p.story},{key:'review',name:'Listen and reflect',desc:'Find one thing to explain better.',minutes:5,icon:Volume2,prompt:p.review},{key:'retry',name:'Say it again',desc:'Repeat your weakest answer.',minutes:5,icon:RotateCcw,prompt:p.speak}];
@@ -125,7 +272,41 @@ export default function Studio(){
  async function saveAudio(){if(!audio||!loaded)return;setBusy(b=>[...b,'audio']);setRecordError('');try{const r=await fetch('/api/audio',{method:'POST',headers:{'content-type':audio.type,'x-practice-label':`Day ${day} - ${limit}s practice`},body:audio});if(!r.ok)throw new Error('Could not save this recording. Download it below or retry.');const v:any=await r.json();setEntries(e=>({...e,[`audio_${v.id}`]:v}));setAudioSaved(true);setNotice('Recording saved privately.');}catch(e:any){setRecordError(e.message)}finally{setBusy(b=>b.filter(k=>k!=='audio'))}}
  function challengeSelect(i:number){setSelected(i);setChallengeReveal(false);setInterruption('');}
  const titleMap:Record<string,[string,string,string]>={today:['DAILY PRACTICE','Make your thinking visible.','A little speaking. A little making. One better decision.'],speak:['SPEAKING STUDIO','Find your design voice.','Practise a clear answer, listen back, and try one improvement.'],lab:['CHALLENGE LAB','Think beyond the first idea.','95 problems across Apple, Google, Atlassian, and general product design.'],stories:['YOUR EXPERIENCE','Build stories you can defend.','Keep the evidence close and your contribution clear.'],learn:['STUDY & UPDATES','The encyclopedia of your craft.','41 visual study topics across 10 design domains, plus lessons, critiques, and primary sources.'],roadmap:['YOUR CURRICULUM','Sixty days. One practice at a time.','Move at your own pace. Speaking runs through every phase.'],review:['PROGRESS & REVIEW','Notice what is getting clearer.','Compare your attempts and choose the next skill to work on.']};
- return <div className="shell"><aside className="sidebar" aria-label="Sidebar navigation"><div className="brand"><span className="brandmark">d.</span><div>design practice<small>PRABHAKAR'S STUDIO</small></div></div><p className="navlabel">YOUR WORKSPACE</p><nav aria-label="Main navigation">{navigation.map(([id,label,Icon])=><button key={id} className={view===id?'active':''} aria-current={view===id?'page':undefined} onClick={()=>nav(id)}><Icon size={18}/>{label}</button>)}</nav><div className="sidefoot"><div className="avatar">PK</div><strong>Prabhakar Kumar</strong><span>Senior product design</span><div className="private"><ShieldCheck size={14}/> Private practice space</div></div></aside><main id="main-content" tabIndex={-1}><header role="banner"><span className="headercrumb">DESIGN PRACTICE / {titleMap[view][0]}</span><div className="a11ycontrols" role="group" aria-label="Accessibility display controls"><span className="a11ylabel"><Accessibility size={16} aria-hidden="true"/> <span>DISPLAY</span></span><button type="button" aria-label={`Decrease text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===0} onClick={()=>setA11y({size:Math.max(0,a11y.size-1)})}>A−</button><span className="a11ysize" aria-hidden="true">{A11Y_SIZES[a11y.size]}</span><button type="button" aria-label={`Increase text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===2} onClick={()=>setA11y({size:Math.min(2,a11y.size+1)})}>A+</button><button type="button" className={a11y.contrast?'on':''} aria-pressed={a11y.contrast} aria-label="Toggle high contrast" onClick={()=>setA11y({contrast:!a11y.contrast})}><span className="a11ytxt">Contrast</span></button><button type="button" className={a11y.calm?'on':''} aria-pressed={a11y.calm} aria-label="Toggle reduced motion" onClick={()=>setA11y({calm:!a11y.calm})}><span className="a11ytxt">Calm motion</span></button><button type="button" className={a11y.read?'on':''} aria-pressed={a11y.read} aria-label="Toggle comfortable reading mode" onClick={()=>setA11y({read:!a11y.read})}><span className="a11ytxt">Comfort</span></button></div><span className="headerstatus" aria-label={loaded?'Status: Progress synced':'Status: Explore and practise'}><span className={loaded?'statusdot':'statusdot pending'} aria-hidden="true"/>{loaded?'Progress synced':'Explore & practise'}</span></header>{error&&<div className="alert" role="alert">{error} {signedOut?<a href="/signin-with-chatgpt?return_to=/" target="_top">Sign in</a>:<button className="textbutton" onClick={load}>Retry loading</button>}</div>}<div className="pagetitle"><div><p className="eyebrow">{titleMap[view][0]}</p><h1>{titleMap[view][1]}</h1><p className="muted">{titleMap[view][2]}</p></div>{view==='today'&&<label className="dayselect" htmlFor="practice-day-select">Practice day<select id="practice-day-select" aria-label="Select practice day" value={day} onChange={e=>{setDay(+e.target.value);setActivity(null)}}>{roadmap.map(d=><option key={d.day} value={d.day}>Day {d.day} · {d.topic}</option>)}</select></label>}</div>
+ return <div className="shell"><aside className="sidebar" aria-label="Sidebar navigation"><div className="brand"><span className="brandmark">d.</span><div>design practice<small>PRABHAKAR'S STUDIO</small></div></div><p className="navlabel">YOUR WORKSPACE</p><nav aria-label="Main navigation">{navigation.map(([id,label,Icon])=><button key={id} className={view===id?'active':''} aria-current={view===id?'page':undefined} onClick={()=>nav(id)}><Icon size={18}/>{label}</button>)}</nav>
+<div className="sidefoot">
+  <div className="avatar" aria-hidden="true">PK</div>
+  <strong>Prabhakar Kumar</strong>
+  <span className="emailtext">prabhakarmdes12@gmail.com</span>
+  <span className="roletext">Senior product design · Admin</span>
+  <div className="private"><ShieldCheck size={14} aria-hidden="true"/> Private practice space</div>
+</div>
+</aside><main id="main-content" tabIndex={-1}><header role="banner"><span className="headercrumb">DESIGN PRACTICE / {titleMap[view][0]}</span><div className="a11ycontrols" role="group" aria-label="Accessibility display controls"><span className="a11ylabel"><Accessibility size={16} aria-hidden="true"/> <span>DISPLAY</span></span><button type="button" aria-label={`Decrease text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===0} onClick={()=>setA11y({size:Math.max(0,a11y.size-1)})}>A−</button><span className="a11ysize" aria-hidden="true">{A11Y_SIZES[a11y.size]}</span><button type="button" aria-label={`Increase text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===2} onClick={()=>setA11y({size:Math.min(2,a11y.size+1)})}>A+</button><button type="button" className={a11y.contrast?'on':''} aria-pressed={a11y.contrast} aria-label="Toggle high contrast" onClick={()=>setA11y({contrast:!a11y.contrast})}><span className="a11ytxt">Contrast</span></button><button type="button" className={a11y.calm?'on':''} aria-pressed={a11y.calm} aria-label="Toggle reduced motion" onClick={()=>setA11y({calm:!a11y.calm})}><span className="a11ytxt">Calm motion</span></button><button type="button" className={a11y.read?'on':''} aria-pressed={a11y.read} aria-label="Toggle comfortable reading mode" onClick={()=>setA11y({read:!a11y.read})}><span className="a11ytxt">Comfort</span></button></div>
+<div className="headerauth">
+  {user?(
+    <div className="authuserchip" role="status" aria-label={`Signed in as Admin: ${user.name}`}>
+      <span className="useravatar" aria-hidden="true">PK</span>
+      <div className="userinfo">
+        <span className="username">{user.name}</span>
+        <span className="adminbadge">ADMIN</span>
+      </div>
+      <button type="button" className="ghostsignout" aria-label="Sign out" onClick={signOutUser} title="Sign out">
+        <LogOut size={15} aria-hidden="true"/>
+      </button>
+    </div>
+  ):(
+    <button type="button" className="signinbtn" onClick={()=>setAuthModalOpen(true)} aria-haspopup="dialog">
+      <KeyRound size={15} aria-hidden="true"/>
+      <span>Sign in (Admin)</span>
+    </button>
+  )}
+</div>
+<span className="headerstatus" aria-label={user?'Status: Admin cloud sync active':'Status: Saved on this device'}>
+  <span className={user?'statusdot':'statusdot pending'} aria-hidden="true"/>
+  {user?'Cloud sync active':'Saved locally'}
+</span>
+</header>
+{authNotice&&<div className="alert" role="alert" style={{background:'#fee2e2',color:'#991b1b',borderColor:'#fca5a5'}}><ShieldAlert size={16} aria-hidden="true"/> {authNotice} <button type="button" className="textbutton" onClick={()=>setAuthNotice('')} style={{marginLeft:10}}>Dismiss</button></div>}
+{error&&<div className="alert" role="alert">{error} {signedOut?<a href="/signin-with-chatgpt?return_to=/" target="_top">Sign in</a>:<button className="textbutton" onClick={load}>Retry loading</button>}</div>}<div className="pagetitle"><div><p className="eyebrow">{titleMap[view][0]}</p><h1>{titleMap[view][1]}</h1><p className="muted">{titleMap[view][2]}</p></div>{view==='today'&&<label className="dayselect" htmlFor="practice-day-select">Practice day<select id="practice-day-select" aria-label="Select practice day" value={day} onChange={e=>{setDay(+e.target.value);setActivity(null)}}>{roadmap.map(d=><option key={d.day} value={d.day}>Day {d.day} · {d.topic}</option>)}</select></label>}</div>
  {view==='today'&&<><section className="panel dailycard" aria-label="Principle of the day">
   <div className="dosehead">
    <p className="eyebrow" style={{margin:0}}>PRINCIPLE OF THE DAY · {doseTopic.category.toUpperCase()}</p>
