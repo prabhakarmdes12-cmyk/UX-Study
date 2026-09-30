@@ -564,12 +564,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .actiongood svg{color:#166e43;flex-shrink:0;margin-top:2px}
 .actionbad svg{color:#a0410f;flex-shrink:0;margin-top:2px}
 .actionmini{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
-.actionmini span{font-size:11px;font-weight:700;letter-spacing:.5px;color:#3d52c9;background:#eef1fc;border-radius:5px;padding:4px 8px;text-transform:uppercase}
+.actionmini span{font-size:11px;font-weight:800;letter-spacing:.5px;color:#1e40af;background:#eef1fc;border-radius:5px;padding:4px 8px;text-transform:uppercase}
 .rhythmcard{border-top:3px solid #afbbea}
 .rhythmrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
 .rhythmday{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f7f8fc;border:1px solid #e3e8f2;border-radius:10px;padding:11px 6px;color:#3f4e66;min-height:64px}
 .rhythmday span{font-family:Manrope,sans-serif;font-weight:800;font-size:13px}
-.rhythmday small{font-size:10.5px;font-weight:600;color:#4c5a74;line-height:1.3;text-align:center}
+.rhythmday small{font-size:10.5px;font-weight:700;color:#1e293b;line-height:1.3;text-align:center}
 .rhythmday.today{border-color:#4359df;box-shadow:0 0 0 2px #4359df33}
 .rhythmday.done{background:#e2f3e9;border-color:#bfe3cf;color:#155e39}
 .rhythmday.done small{color:#155e39}
@@ -604,10 +604,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .questioncard{background:#f5f7fb;border-radius:12px;padding:20px 22px;margin:4px 0 18px;border-left:3px solid #4359df}
 .questioncard .prompt{font-size:22px;margin:14px 0 10px}
 .evidencebox{background:#fff;border:1px solid #cde8d8;border-left:3px solid #1d8a54;border-radius:10px;padding:16px 18px;margin-bottom:6px}
-.evidencebox>span{display:block;font-size:10.5px;letter-spacing:1.4px;font-weight:800;color:#166e43;margin-bottom:8px}
+.evidencebox>span{display:block;font-size:10.5px;letter-spacing:1.4px;font-weight:800;color:#14532d;margin-bottom:8px}
 .evidencebox p{font-size:14px;line-height:1.7;color:#2f3e58;margin:0 0 8px}
 .evidencebox.empty{border-color:#eddaaf;border-left-color:#c08a2b;background:#fffaf1}
-.evidencebox.empty>span{color:#8a5208}
+.evidencebox.empty>span{color:#78350f}
 .defectlist{list-style:none;padding:0;margin:10px 0 14px;display:grid;gap:12px}
 .defectlist li{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid #e1e6ed;border-radius:11px;padding:15px 17px}
 .defectlist li.sev-blocker{border-left:3px solid #b3261e}
@@ -634,7 +634,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .rubriclabel strong{display:block;font-size:14.5px;color:#1d2a40}
 .rubriclabel small{display:block;font-size:12.5px;color:#4b5a74;margin-top:3px;max-width:56ch}
 .repairbox{background:#f2fbf5;border:1px solid #cde8d8;border-radius:11px;padding:16px 18px;margin:18px 0 4px}
-.repairbox strong{display:block;font-family:Manrope,sans-serif;font-size:15px;color:#155e39;margin-bottom:7px}
+.repairbox strong{display:block;font-family:Manrope,sans-serif;font-size:15px;color:#14532d;margin-bottom:7px}
 .repairbox p{font-size:13.5px;line-height:1.65;color:#2f4a3b;margin:0 0 6px;display:flex;gap:7px;align-items:flex-start}
 .repairbox p:last-child{margin-bottom:0}
 .repairbox svg{flex-shrink:0;margin-top:3px}
@@ -676,20 +676,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .cxcoverage h3{margin:0 0 4px}
 .cxcoverage .sectionhead{margin-bottom:14px}
 .covergrid{display:flex;flex-wrap:wrap;gap:8px}
-.coverdot{width:40px;height:40px;min-width:40px;padding:0;border-radius:10px;background:#f0f2f7;border:1px solid #dfe4ee;color:#3f4e68;font-size:12.5px;font-weight:700}
+.coverdot{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:10px;background:#f0f2f7;border:1.5px solid #cbd5e1;color:#1e293b;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
 .coverdot.core{border-color:#b9c3e8;border-width:1.5px}
 .coverdot.done{background:#e2f3e9;border-color:#bfe3cf;color:#155e39}
 .coverdot.current{box-shadow:0 0 0 2px #4359df}
 .promoterow{background:#f2fbf5;border:1px solid #cde8d8;border-radius:11px;padding:16px 18px;margin-top:18px}
-.promoterow>strong{display:block;font-family:Manrope,sans-serif;font-size:14.5px;color:#155e39;margin-bottom:6px}
+.promoterow>strong{display:block;font-family:Manrope,sans-serif;font-size:14.5px;color:#14532d;margin-bottom:6px}
 .promoterow>p{font-size:13.5px;line-height:1.6;color:#2f4a3b;margin:0 0 13px}
 .libfilters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .libfilters .searchwrap{flex:1 1 260px}
-.linktag{background:#eef1fc;border:0;color:#3d52c9;font-size:10px;letter-spacing:.6px;font-weight:700;padding:5px 8px;border-radius:5px;text-transform:uppercase;display:inline-flex;gap:4px;align-items:center;align-self:flex-start;min-height:0}
+.linktag{background:#eef1fc;border:0;color:#1e40af;font-size:10.5px;letter-spacing:.6px;font-weight:800;padding:5px 8px;border-radius:5px;text-transform:uppercase;display:inline-flex;gap:4px;align-items:center;align-self:flex-start;min-height:0}
 .linktag:hover{background:#dfe5fb}
 .a11y-contrast .promoterow,.a11y-contrast .linktag{background:#fff!important;border:2px solid #000!important;color:#000!important}
 .a11y-contrast .promoterow *{color:#000!important}
 .a11y-contrast .coverdot{border:2px solid #000!important;background:#fff!important;color:#000!important}
 .a11y-contrast .coverdot.done{background:#000!important;color:#fff!important}
 .a11y-contrast .coverdot.done svg{color:#fff!important}
-@media(max-width:650px){.coverdot{width:36px;height:36px;min-width:36px}}
+@media(max-width:650px){.coverdot{width:44px;height:44px;min-width:44px;min-height:44px}}
