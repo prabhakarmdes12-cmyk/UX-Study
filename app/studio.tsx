@@ -6,6 +6,8 @@ import type {DrillTrack} from './content';
 import {sharpActions,sharpRubric,rubricLevels,sharpModes,critiqueSprints,critiqueQuestions,constraintCards,metricsReps,metricsKindMeta,synthesisDrills,summaryLevels,summaryFaults,crossExamQuestions,a11yCases,a11yCategories,autopsyCases,riskLenses,weeklyRhythm,rhythmForDate,modeById,sundayRevision} from './sharpness';
 import type {SharpModeId,RubricLevel,RiskLens} from './sharpness';
 import {putShot,getShot,delShot,downscaleImage} from '../lib/shots';
+import {getSahayakPrompts,evaluateSahayakReflection} from './sahayak';
+import type {SahayakDialecticMode,SahayakMessage} from './sahayak';
 type Entries=Record<string,any>;
 // Critique Library — metadata travels through the normal entries store;
 // the screenshot itself never leaves this device (see lib/shots.ts).
@@ -92,6 +94,114 @@ export default function Studio(){
  const recorder=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),chunks=useRef<Blob[]>([]),started=useRef(0),recordTimeout=useRef<ReturnType<typeof setTimeout>|null>(null);
   const [user,setUser]=useState<{email:string,name:string,role:string}|null>(null);
   const [authModalOpen,setAuthModalOpen]=useState(false);
+  // Studio Sahayak Socratic Sparring State
+  const [sahayakOpen,setSahayakOpen]=useState(false);
+  const [sahayakTopicId,setSahayakTopicId]=useState<string>('findability');
+  const [sahayakMode,setSahayakMode]=useState<SahayakDialecticMode>('bridge');
+  const [sahayakChat,setSahayakChat]=useState<SahayakMessage[]>([]);
+  const [sahayakInput,setSahayakInput]=useState('');
+  const sahayakChatRef=useRef<HTMLDivElement>(null);
+
+  function openSahayak(topicId:string,initialMode:SahayakDialecticMode='bridge'){
+    setSahayakTopicId(topicId);
+    setSahayakMode(initialMode);
+    setSahayakOpen(true);
+    const prompts=getSahayakPrompts(topicId);
+    const initialQuestion=initialMode==='bridge'?prompts.bridge:initialMode==='counter'?prompts.counter:prompts.defense;
+    try{
+      const saved=localStorage.getItem(`sahayak_chat_${topicId}`);
+      if(saved){
+        setSahayakChat(JSON.parse(saved));
+      }else{
+        const initialMsg:SahayakMessage={
+          id:`sahayak_init_${Date.now()}`,
+          role:'sahayak',
+          content:initialQuestion,
+          mode:initialMode,
+          timestamp:Date.now(),
+          pramanaTag:initialMode==='bridge'?'उपमान (Upamana)':initialMode==='counter'?'अनुमान (Anumana)':'प्रत्यक्ष (Pratyaksha)'
+        };
+        setSahayakChat([initialMsg]);
+      }
+    }catch{
+      setSahayakChat([{
+        id:`sahayak_init_${Date.now()}`,
+        role:'sahayak',
+        content:initialQuestion,
+        mode:initialMode,
+        timestamp:Date.now(),
+        pramanaTag:'उपमान (Upamana)'
+      }]);
+    }
+  }
+
+  function switchSahayakMode(newMode:SahayakDialecticMode){
+    setSahayakMode(newMode);
+    const prompts=getSahayakPrompts(sahayakTopicId);
+    const question=newMode==='bridge'?prompts.bridge:newMode==='counter'?prompts.counter:prompts.defense;
+    const newMsg:SahayakMessage={
+      id:`sahayak_mode_${Date.now()}`,
+      role:'sahayak',
+      content:question,
+      mode:newMode,
+      timestamp:Date.now(),
+      pramanaTag:newMode==='bridge'?'उपमान (Upamana)':newMode==='counter'?'अनुमान (Anumana)':'प्रत्यक्ष (Pratyaksha)'
+    };
+    setSahayakChat(prev=>{
+      const next=[...prev,newMsg];
+      try{localStorage.setItem(`sahayak_chat_${sahayakTopicId}`,JSON.stringify(next));}catch{}
+      return next;
+    });
+    setTimeout(()=>{
+      sahayakChatRef.current?.scrollTo({top:sahayakChatRef.current.scrollHeight,behavior:'smooth'});
+    },50);
+  }
+
+  function sendSahayakMessage(){
+    if(!sahayakInput.trim())return;
+    const userMsg:SahayakMessage={
+      id:`user_${Date.now()}`,
+      role:'user',
+      content:sahayakInput.trim(),
+      mode:sahayakMode,
+      timestamp:Date.now()
+    };
+    const evalMsg=evaluateSahayakReflection(sahayakTopicId,sahayakInput.trim(),sahayakMode);
+    const nextChat=[...sahayakChat,userMsg,evalMsg];
+    setSahayakChat(nextChat);
+    setSahayakInput('');
+    try{
+      localStorage.setItem(`sahayak_chat_${sahayakTopicId}`,JSON.stringify(nextChat));
+    }catch{}
+    setTimeout(()=>{
+      sahayakChatRef.current?.scrollTo({top:sahayakChatRef.current.scrollHeight,behavior:'smooth'});
+    },50);
+  }
+
+  function clearSahayakChat(){
+    const prompts=getSahayakPrompts(sahayakTopicId);
+    const initialMsg:SahayakMessage={
+      id:`sahayak_init_${Date.now()}`,
+      role:'sahayak',
+      content:prompts[sahayakMode==='custom'?'bridge':sahayakMode],
+      mode:sahayakMode,
+      timestamp:Date.now(),
+      pramanaTag:'उपमान (Upamana)'
+    };
+    setSahayakChat([initialMsg]);
+    try{localStorage.removeItem(`sahayak_chat_${sahayakTopicId}`);}catch{}
+  }
+
+  useEffect(()=>{
+    function onKey(e:KeyboardEvent){
+      if(e.key==='Escape'&&sahayakOpen){
+        setSahayakOpen(false);
+      }
+    }
+    window.addEventListener('keydown',onKey);
+    return()=>window.removeEventListener('keydown',onKey);
+  },[sahayakOpen]);
+
   const [authTab,setAuthTab]=useState<'passcode'|'google'>('passcode');
   const [passcodeInput,setPasscodeInput]=useState('prabhakar2026');
   const [passcodeError,setPasscodeError]=useState('');
@@ -424,6 +534,7 @@ export default function Studio(){
   <div className="private"><ShieldCheck size={14} aria-hidden="true"/> Private practice space</div>
 </div>
 </aside><main id="main-content" tabIndex={-1}><header role="banner"><span className="headercrumb">DESIGN PRACTICE / {titleMap[view][0]}</span><div className="a11ycontrols" role="group" aria-label="Accessibility display controls"><span className="a11ylabel"><Accessibility size={16} aria-hidden="true"/> <span>DISPLAY</span></span><button type="button" aria-label={`Decrease text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===0} onClick={()=>setA11y({size:Math.max(0,a11y.size-1)})}>A−</button><span className="a11ysize" aria-hidden="true">{A11Y_SIZES[a11y.size]}</span><button type="button" aria-label={`Increase text size (currently ${A11Y_SIZES[a11y.size]})`} disabled={a11y.size===2} onClick={()=>setA11y({size:Math.min(2,a11y.size+1)})}>A+</button><button type="button" className={a11y.contrast?'on':''} aria-pressed={a11y.contrast} aria-label="Toggle high contrast" onClick={()=>setA11y({contrast:!a11y.contrast})}><span className="a11ytxt">Contrast</span></button><button type="button" className={a11y.calm?'on':''} aria-pressed={a11y.calm} aria-label="Toggle reduced motion" onClick={()=>setA11y({calm:!a11y.calm})}><span className="a11ytxt">Calm motion</span></button><button type="button" className={a11y.read?'on':''} aria-pressed={a11y.read} aria-label="Toggle comfortable reading mode" onClick={()=>setA11y({read:!a11y.read})}><span className="a11ytxt">Comfort</span></button></div>
+<button type="button" className="headersahayakbtn" onClick={()=>openSahayak(selTopic?.id||doseTopic.id,'bridge')} title="Open Studio Sahayak (Socratic Mentor)" aria-label="Open Studio Sahayak Socratic Mentor"><Sparkles size={14} aria-hidden="true"/><span>Sahayak (सहायक)</span></button>
 <div className="headerauth">
   {user?(
     <div className="authuserchip" role="status" aria-label={`Signed in as Admin: ${user.name}`}>
@@ -461,6 +572,7 @@ export default function Studio(){
   <div className="actions">
    <button onClick={openDose}><BookOpen size={15}/> Open deep dive</button>
    <button className="secondary" onClick={()=>openSpeak(`Daily recall — “${doseTopic.title}”. Recite the principle from memory, then check yourself against the notes.`,30)}><Mic size={15}/> Recall aloud · 30s</button>
+   <button type="button" className="secondary sahayak-btn" onClick={()=>openSahayak(doseTopic.id,'bridge')}><Sparkles size={15} aria-hidden="true"/> विचार विमर्श · Sahayak</button>
    <button className="secondary" disabled={doseLog[todayStr]===doseTopic.id} onClick={()=>markDose(doseTopic.id)}><Check size={15}/> {doseLog[todayStr]===doseTopic.id?'Reviewed today':'Mark reviewed'}</button>
   </div>
   <p className="sayhint">10-minute loop: recall aloud → read the deep dive → reflect with the wisdom mirror → apply it to one live decision → mark reviewed.{reviewList.length>0?` ${reviewList.length} topic${reviewList.length===1?'':'s'} due for review in the encyclopedia.`:''}</p>
@@ -1040,6 +1152,149 @@ export default function Studio(){
     </button>
   )}
   {notice&&<div className="toast" role="status"><CheckCircle2 size={17}/>{notice}</div>}
+  {sahayakOpen&&(
+    <div className="sahayak-backdrop" onClick={()=>setSahayakOpen(false)} role="presentation">
+      <div 
+        className="sahayak-drawer" 
+        role="dialog" 
+        aria-modal="true" 
+        aria-label="Studio Sahayak Socratic Mentor" 
+        onClick={e=>e.stopPropagation()}
+      >
+        <div className="sahayak-header">
+          <div className="sahayak-title-group">
+            <div className="sahayak-avatar" aria-hidden="true">
+              <Sparkles size={18}/>
+            </div>
+            <div>
+              <div className="sahayak-badge-row">
+                <h2>Studio Sahayak <span className="sahayak-devanagari">स्टूडियो सहायक</span></h2>
+                <span className="sahayak-tag">Kashi Lineage</span>
+              </div>
+              <p className="sahayak-tagline">Socratic Design Sparring · Epistemological Inquiry</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            className="ghostbtn close-sahayak" 
+            onClick={()=>setSahayakOpen(false)} 
+            aria-label="Close Studio Sahayak"
+          >
+            <X size={18}/>
+          </button>
+        </div>
+
+        {(()=>{
+          const activeTopic=uxEncyclopedia.find(t=>t.id===sahayakTopicId)||doseTopic;
+          const activeWisdom=wisdomMirrors[activeTopic.id];
+          return(
+            <div className="sahayak-context-banner">
+              <div className="context-meta">
+                <span className="context-domain">{activeTopic.category.toUpperCase()}</span>
+                <strong>{activeTopic.title}</strong>
+              </div>
+              {activeWisdom&&(
+                <div className="context-wisdom">
+                  <span className="context-verse">“{activeWisdom.verse}”</span>
+                  <span className="context-src">— {activeWisdom.source}</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        <div className="sahayak-mode-tabs" role="group" aria-label="Choose Socratic dialectic mode">
+          <button 
+            type="button" 
+            className={sahayakMode==='bridge'?'mode-pill active':'mode-pill'}
+            onClick={()=>switchSahayakMode('bridge')}
+          >
+            <span>🪞 विजडम सेतु</span>
+            <small>Wisdom Bridge</small>
+          </button>
+          <button 
+            type="button" 
+            className={sahayakMode==='counter'?'mode-pill active':'mode-pill'}
+            onClick={()=>switchSahayakMode('counter')}
+          >
+            <span>⚔️ प्रतिवाद</span>
+            <small>Purva-Paksha</small>
+          </button>
+          <button 
+            type="button" 
+            className={sahayakMode==='defense'?'mode-pill active':'mode-pill'}
+            onClick={()=>switchSahayakMode('defense')}
+          >
+            <span>🎙️ साक्षात्कार</span>
+            <small>30s Defense</small>
+          </button>
+        </div>
+
+        <div className="sahayak-chat-stream" ref={sahayakChatRef}>
+          {sahayakChat.map(msg=>(
+            <div 
+              key={msg.id} 
+              className={msg.role==='sahayak'?'sahayak-msg-row sahayak-agent':'sahayak-msg-row sahayak-user'}
+            >
+              {msg.role==='sahayak'&&(
+                <div className="sahayak-msg-avatar" aria-hidden="true">
+                  <Sparkles size={14}/>
+                </div>
+              )}
+              <div className="sahayak-msg-bubble">
+                {msg.pramanaTag&&(
+                  <span className="pramana-badge">
+                    प्रमाण · {msg.pramanaTag}
+                  </span>
+                )}
+                <div className="msg-text">
+                  {msg.content.split('\n\n').map((paragraph,i)=>(
+                    <p key={i}>{paragraph}</p>
+                  ))}
+                </div>
+                <span className="msg-time">
+                  {new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="sahayak-input-box">
+          <textarea
+            rows={2}
+            value={sahayakInput}
+            onChange={e=>setSahayakInput(e.target.value)}
+            placeholder="Type your design trade-off, defense, or philosophical reflection... (Enter to submit)"
+            onKeyDown={e=>{
+              if(e.key==='Enter'&&!e.shiftKey){
+                e.preventDefault();
+                sendSahayakMessage();
+              }
+            }}
+          />
+          <div className="sahayak-input-actions">
+            <button 
+              type="button" 
+              className="ghostbtn sahayak-clear" 
+              onClick={clearSahayakChat}
+              title="Restart dialectic"
+            >
+              <RotateCcw size={14}/> Reset
+            </button>
+            <button 
+              type="button" 
+              className="sahayak-send-btn" 
+              onClick={sendSahayakMessage}
+              disabled={!sahayakInput.trim()}
+            >
+              विचार करें · Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
 </div>
 }
 
