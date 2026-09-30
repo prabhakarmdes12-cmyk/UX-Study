@@ -74,6 +74,7 @@ export default function Studio(){
  const [foundDefects,setFoundDefects]=useState<Record<string,boolean>>({}),[firstRepair,setFirstRepair]=useState('');
  const [cxStory,setCxStory]=useState('story_first'),[cxIdx,setCxIdx]=useState(0);
  const [libTitle,setLibTitle]=useState(''),[libPrinciple,setLibPrinciple]=useState(''),[libNote,setLibNote]=useState(''),[libFile,setLibFile]=useState<File|null>(null),[libBusy,setLibBusy]=useState(false),[shotUrls,setShotUrls]=useState<Record<string,string>>({});
+ const [libQuery,setLibQuery]=useState(''),[libTag,setLibTag]=useState(''),[libKind,setLibKind]=useState<'all'|'sprint'|'wild'>('all'),[libOpen,setLibOpen]=useState(false);
  const sharpEnd=useRef(0);
  const shotInput=useRef<HTMLInputElement|null>(null);
  const shotUrlsRef=useRef<Record<string,string>>({});
@@ -269,7 +270,8 @@ export default function Studio(){
  const recordings=Object.entries(entries).filter(([k,v])=>k.startsWith('audio_')&&v?.id).map(([,v])=>v).sort((a,b)=>b.date.localeCompare(a.date));
  const selectedChallenge=challenges[selected]||challenges[0];
  const value=(key:string,fallback:any='')=>drafts[key]??entries[key]??fallback;
- function note(key:string,label:string,placeholder:string,rows=5){return <div className="note"><label htmlFor={key}>{label}</label><textarea id={key} rows={rows} placeholder={placeholder} maxLength={30000} value={value(key)} onChange={e=>setDrafts(d=>({...d,[key]:e.target.value}))}/><div className="notebottom"><span>{drafts[key]!==undefined?'Unsaved draft':entries[key]?'Saved':'Your notes stay private'}</span><button className="small" disabled={busy.includes(key)||!loaded} onClick={()=>save(key,value(key))}>{busy.includes(key)?'Saving…':'Save notes'}</button></div></div>}
+ // `seed` recovers text written under an older key: it is shown, never saved for you.
+ function note(key:string,label:string,placeholder:string,rows=5,seed=''){const v=String(value(key)||'')||seed;const recovered=!value(key)&&!!seed;return <div className="note"><label htmlFor={key}>{label}</label><textarea id={key} rows={rows} placeholder={placeholder} maxLength={30000} value={v} onChange={e=>setDrafts(d=>({...d,[key]:e.target.value}))}/><div className="notebottom"><span>{recovered?'Recovered from an earlier version — press Save notes to keep it':drafts[key]!==undefined?'Unsaved draft':entries[key]?'Saved':'Your notes stay private'}</span><button className="small" disabled={busy.includes(key)||!loaded} onClick={()=>save(key,v)}>{busy.includes(key)?'Saving…':'Save notes'}</button></div></div>}
  function openSpeak(prompt:string,seconds?:number){setSpeakPrompt(prompt);if(seconds){setLimit(seconds);setElapsed(0);setRunning(false)}nav('speak');}
  // UX Encyclopedia state
  const topicStatus=useSyncExternalStore(statusStore.subscribe,statusStore.read,()=>emptyStatus);
@@ -340,10 +342,30 @@ export default function Studio(){
  function sharpNext(){setSharpShift(s=>s+1);resetRep();}
  function openSharp(id:SharpModeId){pickMode(id);nav('sharp');}
  function logSharp(){const log={...sharpStore.read(),[todayStr]:sharpMode};sharpStore.write(log);if(loaded)save(`sharp_${todayStr}`,{mode:sharpMode,item:sharpItemId,review,weakest:weakest?weakest.id:'',date:new Date().toISOString()});setNotice(weakest?`Session logged. Weakest today: ${weakest.label}.`:'Session logged. Nothing marked weak — check that you were honest.');}
+ // Cross-examination answers are scoped per story, so the same question asked
+ // of two projects keeps two separate rehearsals.
+ function cxKey(storyKey:string,qid:string){return `sharp_cx_${storyKey}_${qid}`;}
+ function cxAnswered(storyKey:string,qid:string){return String(value(cxKey(storyKey,qid),'')||'').trim().length>0;}
+ function goToQuestion(i:number){setCxIdx(i-rot);setSharpStage(0);}
+ // Promotion is deliberate, never automatic: a 90-second spoken answer must not
+ // silently overwrite evidence you verified. Append is the default; replace asks.
+ async function promoteAnswer(storyKey:string,field:string,answer:string,replace:boolean){
+  const st=value(storyKey,{title:'My first project',status:'Needs evidence',fields:{}});
+  const cur=String(st.fields?.[field]||'').trim();
+  if(replace&&cur&&!confirm(`Replace what you have recorded in “${field}”? The current text will be lost.`))return;
+  const merged=(replace||!cur)?answer.trim():`${cur}\n\n${answer.trim()}`;
+  await save(storyKey,{...st,fields:{...(st.fields||{}),[field]:merged.slice(0,8000)}});
+  setNotice(`Saved into “${field}”. Re-read it in My stories before you claim it anywhere.`);
+ }
  // Critique Library: metadata syncs like any other entry; screenshots stay in
  // this device's IndexedDB and are never uploaded.
  const library:LibItem[]=(()=>{const v:unknown=value('critique_library',[]);return Array.isArray(v)?v as LibItem[]:[];})();
  const shotKeys=library.filter(x=>x.hasShot).map(x=>x.id).join(',');
+ const topicByName=(name:string)=>{const n=name.trim().toLowerCase();return n?uxEncyclopedia.find(t=>t.title.toLowerCase()===n||t.id===n):undefined;};
+ const libTags=(()=>{const m=new Map<string,{key:string,label:string,count:number}>();for(const x of library){const raw=(x.principle||'').trim();if(!raw)continue;const key=raw.toLowerCase();const cur=m.get(key);if(cur)cur.count++;else m.set(key,{key,label:raw,count:1});}return [...m.values()].sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label));})();
+ const libQ=libQuery.trim().toLowerCase();
+ const libFiltered=library.filter(x=>(libKind==='all'||x.kind===libKind)&&(!libTag||(x.principle||'').trim().toLowerCase()===libTag)&&(!libQ||[x.title,x.note,x.principle,x.surface,...(x.answers||[]).map(a=>a.a)].join(' ').toLowerCase().includes(libQ)));
+ const libFilterOn=!!(libTag||libQ||libKind!=='all');
  async function saveLibrary(kind:'sprint'|'wild',id:string){
   const title=(libTitle||(kind==='sprint'?sprint.surface:'')).trim();
   if(!title){setNotice('Give this capture a title before saving it.');return;}
@@ -351,15 +373,16 @@ export default function Studio(){
   let hasShot=false;
   if(libFile){try{const blob=await downscaleImage(libFile);await putShot(id,blob);hasShot=true;}catch{setNotice('The screenshot could not be stored on this device — your notes were kept.');}}
   const answers=kind==='sprint'?critiqueQuestions.map((cq,i)=>({q:cq,a:String(value(`sharp_cs_${sprint.id}_q${i}`,'')||'').trim()})).filter(x=>x.a):[];
-  const item={id,kind,date:new Date().toISOString(),title,principle:libPrinciple.trim(),note:libNote.trim(),surface:kind==='sprint'?sprint.surface:'',answers,hasShot};
+  const item={id,kind,date:new Date().toISOString(),title,principle:libPrinciple.trim().replace(/\s+/g,' '),note:libNote.trim(),surface:kind==='sprint'?sprint.surface:'',answers,hasShot};
   await save('critique_library',[item,...library].slice(0,150));
   setLibTitle('');setLibPrinciple('');setLibNote('');setLibFile(null);if(shotInput.current)shotInput.current.value='';
   setLibBusy(false);
  }
  async function removeLibrary(id:string){await save('critique_library',library.filter(x=>x.id!==id));try{await delShot(id);}catch{/* image already gone */}setShotUrls(u=>{const n={...u};if(n[id])URL.revokeObjectURL(n[id]);delete n[id];return n;});}
  function exportLibrary(){
-  const md=['# Critique Library','',`Exported ${new Date().toLocaleDateString()} · ${library.length} ${library.length===1?'entry':'entries'}`,'',
-   ...library.map(x=>[`## ${x.title}`,`*${new Date(x.date).toLocaleDateString()} · ${x.kind==='sprint'?'Critique sprint':'Craft in the wild'}${x.principle?` · ${x.principle}`:''}*`,'',x.surface?`**Surface:** ${x.surface}`:'',x.note||'',...(x.answers||[]).map((a:LibAnswer)=>`- **${a.q}** ${a.a}`),x.hasShot?'_Screenshot stored privately on the original device._':'',''].filter(Boolean).join('\n'))].join('\n');
+  const rows=libFiltered;
+  const md=['# Critique Library','',`Exported ${new Date().toLocaleDateString()} · ${rows.length} ${rows.length===1?'entry':'entries'}${libFilterOn?` (filtered from ${library.length})`:''}`,'',
+   ...rows.map(x=>[`## ${x.title}`,`*${new Date(x.date).toLocaleDateString()} · ${x.kind==='sprint'?'Critique sprint':'Craft in the wild'}${x.principle?` · ${x.principle}`:''}*`,'',x.surface?`**Surface:** ${x.surface}`:'',x.note||'',...(x.answers||[]).map((a:LibAnswer)=>`- **${a.q}** ${a.a}`),x.hasShot?'_Screenshot stored privately on the original device._':'',''].filter(Boolean).join('\n'))].join('\n');
   download('critique-library.md',new Blob([md],{type:'text/markdown'}));
  }
  // Pull stored screenshots out of IndexedDB and mint object URLs for the grid.
@@ -524,6 +547,7 @@ export default function Studio(){
    <ol className="drillsteps">{mode.steps.map(s=><li key={s}>{s}</li>)}</ol>
    <div className="actionmini" aria-label="Actions trained by this mode">{sharpActions.filter(a=>mode.actions.includes(a.id)).map(a=><span key={a.id}>{a.label}</span>)}</div>
    <p className="sayhint"><Sparkles size={13} aria-hidden="true"/> {mode.senior}</p>
+   {sharpMode!=='critique'&&<button className="textbutton" aria-expanded={libOpen} onClick={()=>setLibOpen(v=>!v)}><ImageIcon size={14} aria-hidden="true"/> {libOpen?'Hide the Critique Library':`Capture this to the Critique Library${library.length?` (${library.length} saved)`:''}`}</button>}
   </section>
 
   {sharpMode==='critique'&&<>
@@ -550,40 +574,6 @@ export default function Studio(){
     </div>}
    </section>
 
-   <section className="panel libpanel" aria-label="Critique Library">
-    <div className="sectionhead">
-     <div><h2>Critique Library</h2><p className="muted smalltext">{library.length} saved · notes sync privately, screenshots stay on this device only.</p></div>
-     <button className="secondary small" onClick={exportLibrary} disabled={!library.length}><Download size={14}/> Export as Markdown</button>
-    </div>
-    <div className="libform">
-     <div className="formgrid">
-      <label htmlFor="lib-title">Title<input id="lib-title" value={libTitle} maxLength={120} placeholder={sprint.surface} onChange={e=>setLibTitle(e.target.value)}/></label>
-      <label htmlFor="lib-principle">Principle in play<input id="lib-principle" value={libPrinciple} maxLength={80} placeholder="Hierarchy · recovery · restraint…" onChange={e=>setLibPrinciple(e.target.value)}/></label>
-     </div>
-     <label htmlFor="lib-note">Two sentences<textarea id="lib-note" rows={2} maxLength={1200} value={libNote} placeholder="What is alive or violated here, and what would you test first?" onChange={e=>setLibNote(e.target.value)}/></label>
-     <label htmlFor="lib-shot" className="shotlabel"><ImageIcon size={14} aria-hidden="true"/> Screenshot (optional — stored on this device)</label>
-     <input id="lib-shot" ref={shotInput} type="file" accept="image/*" onChange={e=>setLibFile(e.target.files?.[0]||null)}/>
-     <div className="actions">
-      <button disabled={libBusy} onClick={()=>saveLibrary('sprint',`cl_${crypto.randomUUID()}`)}><Upload size={15}/> {libBusy?'Saving…':'Save this sprint'}</button>
-      <button className="secondary" disabled={libBusy} onClick={()=>saveLibrary('wild',`cl_${crypto.randomUUID()}`)}><Eye size={15}/> Save as craft-in-the-wild</button>
-      <span className="muted smalltext">Sprint saves copy your five answers. Craft-in-the-wild saves the note alone.</span>
-     </div>
-    </div>
-    {library.length>0?<div className="libgrid">
-     {library.map(item=><article key={item.id} className="libcard">
-      {/* eslint-disable-next-line @next/next/no-img-element -- on-device blob URL, never a remote asset */}
-      {item.hasShot&&shotUrls[item.id]&&<img src={shotUrls[item.id]} alt={`Screenshot saved with ${item.title}`}/>}
-      <div className="libbody">
-       <div className="cardmeta"><span className="topicnum">{new Date(item.date).toLocaleDateString()}</span><span className="statusbadge s-rev">{item.kind==='sprint'?'Sprint':'In the wild'}</span></div>
-       <strong className="tctitle">{item.title}</strong>
-       {item.principle&&<span className="domtag">{item.principle}</span>}
-       {item.note&&<p className="tcsum">{item.note}</p>}
-       {(item.answers||[]).length>0&&<details><summary>Five answers</summary><ul className="cleanlist">{item.answers.map((a:LibAnswer,i:number)=><li key={i}><strong>{a.q}</strong><br/>{a.a}</li>)}</ul></details>}
-       <button className="textbutton" onClick={()=>removeLibrary(item.id)}><Trash2 size={13} aria-hidden="true"/> Remove</button>
-      </div>
-     </article>)}
-    </div>:<div className="encycempty"><strong>Nothing saved yet</strong>One capture a day builds a library nobody else has — your own evidence of what good and bad look like in the wild.</div>}
-   </section>
   </>}
 
   {sharpMode==='constraint'&&<>
@@ -704,12 +694,20 @@ export default function Studio(){
    const storyKeys=[...new Set(['story_first',...Object.keys(entries).filter(k=>k.startsWith('story_')),...Object.keys(drafts).filter(k=>k.startsWith('story_'))])];
    const s=value(cxStory,{title:'My first project',status:'Needs evidence',fields:{}});
    const ev=String(s.fields?.[cxQ.evidenceField]||'').trim();
+   const answerKey=cxKey(cxStory,cxQ.id);
+   const answer=String(value(answerKey,'')||'').trim();
+   const done=crossExamQuestions.filter(x=>cxAnswered(cxStory,x.id)).length;
+   const coreLeft=crossExamQuestions.filter(x=>x.core&&!cxAnswered(cxStory,x.id)).length;
    return <section className="panel">
     <div className="sectionhead">
      <div><h2>Cross-examine one story</h2><p className="muted smalltext">Ninety seconds, out loud, without reading your notes first.</p></div>
      <label htmlFor="cx-story" className="dayselect">Story<select id="cx-story" value={cxStory} onChange={e=>{setCxStory(e.target.value);setSharpStage(0);}}>{storyKeys.map(k=><option key={k} value={k}>{value(k,{title:'My first project'}).title||'Untitled project'}</option>)}</select></label>
     </div>
     {s.status!=='Verified'&&<div className="alert" role="status">This story is marked “{s.status||'Needs evidence'}”. Practise freely, but verify it before it enters an interview.</div>}
+    <p className="muted smalltext" style={{marginBottom:'8px'}}><ListChecks size={13} aria-hidden="true"/> {done} of {crossExamQuestions.length} answered for this story · {coreLeft===0?'every core question rehearsed':`${coreLeft} core question${coreLeft===1?'':'s'} still unrehearsed`}</p>
+    <div className="cxjump" role="group" aria-label="Questions for this story">
+     {crossExamQuestions.map((x,i)=><button key={x.id} className={`coverdot${cxAnswered(cxStory,x.id)?' done':''}${x.core?' core':''}${x.id===cxQ.id?' current':''}`} aria-current={x.id===cxQ.id?'true':undefined} aria-label={`${x.core?'Core':'Pressure'} question ${i+1}: ${x.question} — ${cxAnswered(cxStory,x.id)?'answered':'not answered yet'}`} title={x.question} onClick={()=>goToQuestion(i)}>{cxAnswered(cxStory,x.id)?<Check size={13}/>:i+1}</button>)}
+    </div>
     <div className="questioncard">
      <span className="tag">{cxQ.core?'CORE QUESTION':'PRESSURE QUESTION'}</span>
      <p className="prompt">{cxQ.question}</p>
@@ -717,15 +715,24 @@ export default function Studio(){
     </div>
     <div className={ev?'evidencebox':'evidencebox empty'}>
      <span>YOUR RECORDED EVIDENCE · {cxQ.evidenceField.toUpperCase()}</span>
-     {ev?<p>{ev}</p>:<p>Nothing recorded in this field yet — so this claim is not usable in an interview. Write it in My stories before you rehearse the answer.</p>}
+     {ev?<p>{ev}</p>:<p>Nothing recorded in this field yet — so this claim is not usable in an interview. Answer below, then promote it into the story.</p>}
      <button className="textbutton" onClick={()=>{setStory(cxStory);nav('stories');}}>Open this story <ChevronRight size={14} aria-hidden="true"/></button>
     </div>
-    {note(`sharp_cx_${cxQ.id}`,'Your answer','Answer first, then check it against the evidence above. If they disagree, the evidence wins.',3)}
+    {note(answerKey,'Your answer','Answer first, then check it against the evidence above. If they disagree, the evidence wins.',3,cxStory==='story_first'?String(value(`sharp_cx_${cxQ.id}`,'')||''):'')}
     <div className="actions">
      <button className="secondary" onClick={()=>openSpeak(`${cxQ.question} (About: ${s.title||'this project'})`,90)}><Mic size={15}/> Answer aloud · 90s</button>
      <button className={sharpStage>0?'secondary':''} aria-expanded={sharpStage>0} onClick={()=>setSharpStage(sharpStage>0?0:1)}>{sharpStage>0?'Hide the comparison':'Compare weak and strong'}</button>
      <button className="textbutton" onClick={()=>{setCxIdx(i=>i+1);setSharpStage(0);}}>Draw another question <ChevronRight size={14} aria-hidden="true"/></button>
     </div>
+    {answer&&<div className="promoterow">
+     <strong>{ev?`Promote this answer into “${cxQ.evidenceField}”`:`“${cxQ.evidenceField}” is empty — this answer can fill it`}</strong>
+     <p>{ev?'Appending keeps what you already verified and adds the sharper sentence underneath. Replacing is for when the old text was simply wrong.':'Promoting writes it straight into the story. Nothing is marked verified for you.'}</p>
+     <div className="actions">
+      <button onClick={()=>promoteAnswer(cxStory,cxQ.evidenceField,answer,false)}><Plus size={15}/> {ev?'Append to my story':'Write into my story'}</button>
+      {ev&&<button className="secondary" onClick={()=>promoteAnswer(cxStory,cxQ.evidenceField,answer,true)}><RotateCcw size={15}/> Replace the field</button>}
+      <span className="muted smalltext">Saved drafts promote too — press Save notes first if you want the latest text.</span>
+     </div>
+    </div>}
     {sharpStage>0&&<>
      <div className="trapgrid" style={{marginTop:'18px'}}>
       <div className="trapweak"><b>WEAK</b><p>{cxQ.weak}</p></div>
@@ -804,6 +811,56 @@ export default function Studio(){
    </div>}
   </section>}
 
+  {(sharpMode==='critique'||libOpen)&&<section className="panel libpanel" aria-label="Critique Library">
+   <div className="sectionhead">
+    <div><h2>Critique Library</h2><p className="muted smalltext">{library.length} saved · notes sync privately, screenshots stay on this device only.</p></div>
+    <button className="secondary small" onClick={exportLibrary} disabled={!libFiltered.length}><Download size={14}/> Export{libFilterOn?` these ${libFiltered.length}`:' as Markdown'}</button>
+   </div>
+   <div className="libform">
+    <div className="formgrid">
+     <label htmlFor="lib-title">Title<input id="lib-title" value={libTitle} maxLength={120} placeholder={sharpMode==='critique'?sprint.surface:'What did you just see?'} onChange={e=>setLibTitle(e.target.value)}/></label>
+     <label htmlFor="lib-principle">Principle in play<input id="lib-principle" list="lib-principles" value={libPrinciple} maxLength={80} placeholder="Type freely — encyclopedia topics autocomplete" onChange={e=>setLibPrinciple(e.target.value)}/></label>
+    </div>
+    <datalist id="lib-principles">{uxEncyclopedia.map(t=><option key={t.id} value={t.title}/>)}</datalist>
+    <label htmlFor="lib-note">Two sentences<textarea id="lib-note" rows={2} maxLength={1200} value={libNote} placeholder="What is alive or violated here, and what would you test first?" onChange={e=>setLibNote(e.target.value)}/></label>
+    <label htmlFor="lib-shot" className="shotlabel"><ImageIcon size={14} aria-hidden="true"/> Screenshot (optional — stored on this device)</label>
+    <input id="lib-shot" ref={shotInput} type="file" accept="image/*" onChange={e=>setLibFile(e.target.files?.[0]||null)}/>
+    <div className="actions">
+     {sharpMode==='critique'&&<button disabled={libBusy} onClick={()=>saveLibrary('sprint',`cl_${crypto.randomUUID()}`)}><Upload size={15}/> {libBusy?'Saving…':'Save this sprint'}</button>}
+     <button className={sharpMode==='critique'?'secondary':''} disabled={libBusy} onClick={()=>saveLibrary('wild',`cl_${crypto.randomUUID()}`)}><Eye size={15}/> {libBusy?'Saving…':'Save as craft-in-the-wild'}</button>
+     <span className="muted smalltext">{sharpMode==='critique'?'Sprint saves copy your five answers. Craft-in-the-wild saves the note alone.':'Tag it with a principle so it can be found again in six months.'}</span>
+    </div>
+   </div>
+   {library.length>0&&<div className="libfilters">
+    <div className="searchwrap"><Search size={17} aria-hidden="true"/><input type="search" aria-label="Search your critique library" placeholder="Search titles, notes, principles, answers…" value={libQuery} onChange={e=>setLibQuery(e.target.value)}/></div>
+    <div className="segmented" role="group" aria-label="Filter by capture type">
+     {([['all','All'],['sprint','Sprints'],['wild','In the wild']] as const).map(([k,l])=><button key={k} className={libKind===k?'chosen':''} aria-pressed={libKind===k} onClick={()=>setLibKind(k)}>{l}</button>)}
+    </div>
+   </div>}
+   {libTags.length>0&&<div className="domainchips" role="group" aria-label="Filter by principle">
+    <button className={`chip${libTag?'':' chosen'}`} aria-pressed={!libTag} onClick={()=>setLibTag('')}>All principles <span>{library.length}</span></button>
+    {libTags.map(t=><button key={t.key} className={`chip${libTag===t.key?' chosen':''}`} aria-pressed={libTag===t.key} onClick={()=>setLibTag(libTag===t.key?'':t.key)}>{t.label} <span>{t.count}</span></button>)}
+   </div>}
+   {libFiltered.length>0?<div className="libgrid">
+    {libFiltered.map(item=>{const topic=topicByName(item.principle||'');return <article key={item.id} className="libcard">
+     {/* eslint-disable-next-line @next/next/no-img-element -- on-device blob URL, never a remote asset */}
+     {item.hasShot&&shotUrls[item.id]&&<img src={shotUrls[item.id]} alt={`Screenshot saved with ${item.title}`}/>}
+     <div className="libbody">
+      <div className="cardmeta"><span className="topicnum">{new Date(item.date).toLocaleDateString()}</span><span className="statusbadge s-rev">{item.kind==='sprint'?'Sprint':'In the wild'}</span></div>
+      <strong className="tctitle">{item.title}</strong>
+      {item.principle&&(topic
+        ?<button className="domtag linktag" onClick={()=>openDrillTopic(topic.id)} aria-label={`Open the encyclopedia topic ${topic.title}`}>{item.principle} <ChevronRight size={11} aria-hidden="true"/></button>
+        :<span className="domtag">{item.principle}</span>)}
+      {item.note&&<p className="tcsum">{item.note}</p>}
+      {(item.answers||[]).length>0&&<details><summary>Five answers</summary><ul className="cleanlist">{item.answers.map((a:LibAnswer,i:number)=><li key={i}><strong>{a.q}</strong><br/>{a.a}</li>)}</ul></details>}
+      <button className="textbutton" onClick={()=>removeLibrary(item.id)}><Trash2 size={13} aria-hidden="true"/> Remove</button>
+     </div>
+    </article>;})}
+   </div>:library.length>0
+    ?<div className="encycempty"><strong>No captures match</strong>Clear the filters, or add today’s capture.<div className="actions" style={{justifyContent:'center',marginTop:'14px'}}><button className="secondary small" onClick={()=>{setLibTag('');setLibQuery('');setLibKind('all');}}>Clear filters</button></div></div>
+    :<div className="encycempty"><strong>Nothing saved yet</strong>One capture a day builds a library nobody else has — your own evidence of what good and bad look like in the wild.</div>}
+  </section>}
+
   <section className="panel rubricpanel" aria-label="Self-review">
    <div className="sectionhead">
     <div><h2>Self-review · no score, one repair</h2><p className="muted smalltext">Six dimensions, marked honestly. The output is your weakest one and the drill that fixes it.</p></div>
@@ -828,7 +885,17 @@ export default function Studio(){
    <p className="privacytext"><Lock size={14} aria-hidden="true"/> Nothing here is scored or shared. Marks are for choosing tomorrow’s repair, nothing else.</p>
   </section>
  </>}
- {view==='stories'&&<><section className="panel"><div className="sectionhead"><div><h2>Your evidence bank</h2><p className="muted smalltext">Start with a real project. No achievements or metrics have been filled in for you.</p></div><button onClick={()=>{const id=`story_${crypto.randomUUID()}`;setStory(id);setDrafts(d=>({...d,[id]:{title:'Untitled project',status:'Needs evidence',fields:{}}}))}}><Plus size={16}/> New story</button></div><div className="storytabs">{[...new Set(['story_first',...Object.keys(entries).filter(k=>k.startsWith('story_')),...Object.keys(drafts).filter(k=>k.startsWith('story_'))])].map(k=><button key={k} className={story===k?'chosen':''} onClick={()=>setStory(k)}>{value(k,{title:'My first project'}).title||'Untitled project'}</button>)}</div>{(()=>{const s=value(story,{title:'',status:'Needs evidence',fields:{}});const edit=(v:any)=>setDrafts(d=>({...d,[story]:{...s,...v}}));return <><div className="formgrid"><label htmlFor="story-title-input">Project name<input id="story-title-input" value={s.title} onChange={e=>edit({title:e.target.value})} placeholder="A real project you can discuss" maxLength={150}/></label><label htmlFor="story-status-select">Evidence status<select id="story-status-select" aria-label="Evidence status" value={s.status} onChange={e=>edit({status:e.target.value})}>{['Needs evidence','Verified','Do not claim yet'].map(t=><option key={t}>{t}</option>)}</select></label></div><p className="inset smalltext">Possible starting points from your brief: NetElixir / LXRSEO / LXRGuide, Chiti Console, operational systems, Kashi Sahayak, or design-system work. Verify your role and project status before using a story in an interview.</p><div className="formgrid">{storyFields.map(f=><label key={f}>{f}<textarea rows={3} maxLength={8000} value={s.fields?.[f]||''} placeholder={f.includes('evidence')?'Describe or link the evidence. State any limitations.':'Use concrete details you can substantiate.'} onChange={e=>edit({fields:{...s.fields,[f]:e.target.value}})}/></label>)}</div><div className="actions"><button disabled={!loaded||busy.includes(story)} onClick={()=>save(story,s)}>{busy.includes(story)?'Saving…':'Save story'}</button><button className="secondary" onClick={()=>openSpeak(`Walk me through ${s.title||'this project'}. What did you personally decide, why, and what evidence supports the outcome?`)}>Rehearse this story</button><span className="muted smalltext">{drafts[story]!==undefined?'Unsaved changes':'Saved stories remain private'}</span></div></>})()}</section><section className="panel"><h2>The five whys of design defence</h2><div className="answerpath">{['Why this approach?','Why not another?','Why this information?','Why here?','Why this hierarchy?'].map(x=><span key={x}>{x}</span>)}</div><p className="muted">Ask a peer to challenge one choice repeatedly. Revise when their question exposes a weak assumption.</p></section></>}
+ {view==='stories'&&<><section className="panel"><div className="sectionhead"><div><h2>Your evidence bank</h2><p className="muted smalltext">Start with a real project. No achievements or metrics have been filled in for you.</p></div><button onClick={()=>{const id=`story_${crypto.randomUUID()}`;setStory(id);setDrafts(d=>({...d,[id]:{title:'Untitled project',status:'Needs evidence',fields:{}}}))}}><Plus size={16}/> New story</button></div><div className="storytabs">{[...new Set(['story_first',...Object.keys(entries).filter(k=>k.startsWith('story_')),...Object.keys(drafts).filter(k=>k.startsWith('story_'))])].map(k=><button key={k} className={story===k?'chosen':''} onClick={()=>setStory(k)}>{value(k,{title:'My first project'}).title||'Untitled project'}</button>)}</div>{(()=>{const s=value(story,{title:'',status:'Needs evidence',fields:{}});const edit=(v:any)=>setDrafts(d=>({...d,[story]:{...s,...v}}));const cxDone=crossExamQuestions.filter(x=>cxAnswered(story,x.id)).length;const cxCoreLeft=crossExamQuestions.filter(x=>x.core&&!cxAnswered(story,x.id)).length;const cxEmpty=storyFields.filter(f=>!String(s.fields?.[f]||'').trim()).length;return <><div className="formgrid"><label htmlFor="story-title-input">Project name<input id="story-title-input" value={s.title} onChange={e=>edit({title:e.target.value})} placeholder="A real project you can discuss" maxLength={150}/></label><label htmlFor="story-status-select">Evidence status<select id="story-status-select" aria-label="Evidence status" value={s.status} onChange={e=>edit({status:e.target.value})}>{['Needs evidence','Verified','Do not claim yet'].map(t=><option key={t}>{t}</option>)}</select></label></div><p className="inset smalltext">Possible starting points from your brief: NetElixir / LXRSEO / LXRGuide, Chiti Console, operational systems, Kashi Sahayak, or design-system work. Verify your role and project status before using a story in an interview.</p><div className="formgrid">{storyFields.map(f=><label key={f}>{f}<textarea rows={3} maxLength={8000} value={s.fields?.[f]||''} placeholder={f.includes('evidence')?'Describe or link the evidence. State any limitations.':'Use concrete details you can substantiate.'} onChange={e=>edit({fields:{...s.fields,[f]:e.target.value}})}/></label>)}</div><div className="actions"><button disabled={!loaded||busy.includes(story)} onClick={()=>save(story,s)}>{busy.includes(story)?'Saving…':'Save story'}</button><button className="secondary" onClick={()=>openSpeak(`Walk me through ${s.title||'this project'}. What did you personally decide, why, and what evidence supports the outcome?`)}>Rehearse this story</button><span className="muted smalltext">{drafts[story]!==undefined?'Unsaved changes':'Saved stories remain private'}</span></div>
+<div className="cxcoverage">
+ <div className="sectionhead">
+  <div><h3>Cross-examination coverage</h3><p className="muted smalltext">{cxDone} of {crossExamQuestions.length} questions answered · {cxCoreLeft===0?'every core question rehearsed':`${cxCoreLeft} core question${cxCoreLeft===1?'':'s'} unrehearsed`}{cxEmpty>0?` · ${cxEmpty} evidence field${cxEmpty===1?'':'s'} still empty`:' · every field filled'}</p></div>
+  <button className="secondary small" onClick={()=>{setCxStory(story);pickMode('crossexam');nav('sharp');}}><Crosshair size={14}/> Cross-examine this story</button>
+ </div>
+ <div className="covergrid" role="group" aria-label="Cross-examination questions for this story">
+  {crossExamQuestions.map((x,i)=><button key={x.id} className={`coverdot${cxAnswered(story,x.id)?' done':''}${x.core?' core':''}`} title={x.question} aria-label={`${x.core?'Core':'Pressure'} question ${i+1}: ${x.question} — ${cxAnswered(story,x.id)?'answered':'not answered yet'}`} onClick={()=>{setCxStory(story);pickMode('crossexam');goToQuestion(i);nav('sharp');}}>{cxAnswered(story,x.id)?<Check size={13}/>:i+1}</button>)}
+ </div>
+ <p className="sayhint">A story is interview-ready when the seven core questions are answered and the answers match the evidence above — not when the fields are merely full.</p>
+</div></>})()}</section><section className="panel"><h2>The five whys of design defence</h2><div className="answerpath">{['Why this approach?','Why not another?','Why this information?','Why here?','Why this hierarchy?'].map(x=><span key={x}>{x}</span>)}</div><p className="muted">Ask a peer to challenge one choice repeatedly. Revise when their question exposes a weak assumption.</p></section></>}
  {view==='learn'&&<><div style={{display:'flex',gap:'8px',marginBottom:'16px'}}><div className="segmented" role="tablist" aria-label="Study modes"><button role="tab" aria-selected={critiqueTab==='encyc'} className={critiqueTab==='encyc'?'chosen':''} onClick={()=>setCritiqueTab('encyc')}>UX Encyclopedia ({uxEncyclopedia.length})</button><button role="tab" aria-selected={critiqueTab==='lessons'} className={critiqueTab==='lessons'?'chosen':''} onClick={()=>setCritiqueTab('lessons')}>Core Study Lessons ({lessons.length})</button><button role="tab" aria-selected={critiqueTab==='critiques'} className={critiqueTab==='critiques'?'chosen':''} onClick={()=>setCritiqueTab('critiques')}>Product & Interaction Critiques ({critiques.length})</button></div></div>{critiqueTab==='encyc'?(<>
  <div className="encyctop">
   <div className="searchwrap">

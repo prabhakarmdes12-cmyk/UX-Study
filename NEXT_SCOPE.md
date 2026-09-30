@@ -124,6 +124,15 @@ Rules the lab keeps, deliberately:
   “not usable in an interview yet” rather than quietly passed over.
 - **Screenshots stay on the device.** Critique Library metadata syncs like any
   other entry; the pixels live in IndexedDB and are never uploaded.
+- **Practice never writes to the evidence bank behind your back.** A cross-exam
+  answer is promoted into its story field by an explicit action, appended by
+  default and replacing only after a confirmation. Coverage — which of the 12
+  questions a story has survived — is shown in both places, because a story is
+  ready when it has been pressure-tested, not when its fields are merely full.
+- **Tags autocomplete instead of being enforced.** Library principles remain free
+  text, backed by a datalist of the 41 encyclopedia topics; canonical tags become
+  count-ranked filter chips and deep-link back to the topic. A forced taxonomy
+  would have stopped capture at the moment it needs to be frictionless.
 
 ### Pillar G — Craft-in-the-wild log
 Once a day (optional): photograph/screenshot one real interface moment, tag it

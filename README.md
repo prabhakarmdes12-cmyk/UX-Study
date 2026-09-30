@@ -45,10 +45,21 @@ single weakest dimension plus the drill that repairs it.
 The weekly rhythm (Monday critique → Sunday autopsy and revision) chooses the mode
 for you; the Today screen links straight into that day's rep.
 
+**Cross-examination writes back, but only on purpose.** Answers are stored per story,
+so the same question asked of two projects keeps two separate rehearsals. A spoken
+answer never overwrites verified evidence on its own: promote it and it is *appended*
+to the linked story field, or replaces it after an explicit confirmation. Both the lab
+and My stories show which of the 12 questions a story has survived, and which of the
+seven core ones are still unrehearsed.
+
 **Critique Library.** Captures save alongside your five answers, a principle tag, and
 an optional screenshot. Notes sync with the rest of your practice; screenshots are
-downscaled and stored only in this device's IndexedDB, never uploaded. The whole
-library exports to Markdown.
+downscaled and stored only in this device's IndexedDB, never uploaded. The library is
+searchable, filters by capture type and by count-ranked principle chips, and can be
+opened from any mode — so a metrics rep or an autopsy can be captured too. Principle
+tags stay free text but autocomplete against the 41 encyclopedia topics, which keeps
+them canonical and turns each tag into a link back to the topic. Export follows the
+current filter.
 
 ## Run locally
 
