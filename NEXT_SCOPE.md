@@ -115,12 +115,14 @@ Private by default; export-ready for portfolio or mentoring conversations.
 
 | Phase | Theme | Scope | Exit criteria |
 |---|---|---|---|
-| **Now** (shipped) | Encyclopedia + mirrors + visible a11y controls | 41 topics, 41 mirrors, display toolbar | Merged to main |
-| **Next 1** | Daily dose & streaks | Principle of the Day, streak chip, weekly heatmap reuse | Loop completable in ≤10 min |
-| **Next 2** | Spaced revision | `lastReviewedAt`, decay to Refresh, review queue | Queue drives daily dose |
+| **Shipped** | Encyclopedia + mirrors + visible a11y controls | 41 topics, 41 mirrors, display toolbar | Merged to main |
+| **Shipped (Kaizen v1)** | Daily dose & streaks | Principle of the Day, streak chip, weakest-domain rotation | Loop completable in ≤10 min |
+| **Shipped (Kaizen v1)** | Spaced revision | review timestamps, 90-day decay to Refresh, review queue, For-review chip | Queue drives daily dose |
+| **Shipped (Drills v1)** | Skill drills | 20 drills × 7 tracks (sketch/read/observe/write/audit/measure/systems), focus timer, week dots, topic deep links | Drill loop ≤20 min, loggable daily |
 | **Next 3** | Shelf 1 (Fundamentals) | ~40 foundational topics, gentler voice | Junior-readable, same anatomy |
 | **Next 4** | Shelf 3 (Staff) | ~25 leadership/strategy topics | Senior→Staff bridge complete |
-| **Later** | Watchtower prompts, craft log, mentor share-outs | Reminders, monthly template nudges | Sustainable at 10 min/day |
+| **Next 5** | Drill expansion & watchtower | More drill variants per track, monthly watchtower prompts, craft-log archive view | Sustainable at 30 min/day total |
+| **Later** | Mentor share-outs | Export of drill deliverables for peer review | Private-by-default sharing |
 
 ## 5. Success measures (for the learning experience itself)
 

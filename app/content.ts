@@ -2589,4 +2589,123 @@ export const wisdomMirrors: Record<string, WisdomMirror> = {
   },
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Skill Drills — 15–20 minute hands-on practices beside the daily principle.
+// Seven weekly-rotating tracks: sketch, read, observe, write, audit, measure,
+// systems. Metric and constraint drills are drawn from the Masterbook directly.
+
+export type DrillTrack = 'sketch' | 'read' | 'observe' | 'write' | 'audit' | 'measure' | 'systems';
+
+export interface SkillDrill {
+  id: string;
+  track: DrillTrack;
+  title: string;
+  minutes: 15 | 20;
+  brief: string;
+  steps: string[];
+  deliverable: string;
+  topicId: string;
+  link?: string;
+}
+
+export const skillDrills: SkillDrill[] = [
+  // ── Sketch — eyes and hands ──
+  { id: 'sk-hierarchy', track: 'sketch', title: 'Hierarchy in grays', minutes: 15,
+    brief: 'Strip one dense screen of everything except priority. What survives is the hierarchy — the rest was decoration hiding indecision.',
+    steps: ['Pick one screen from your current work (or an app you used today).', 'Redraw it as boxes in three gray levels ranked by importance — no colour, no type styling.', 'Squint: does the eye land where the user’s next decision lives?', 'Mark the single accent you would allow back, and defend why it alone earns colour.'],
+    deliverable: 'One grayscale thumbnail plus one sentence defending the sole accent.', topicId: 'visual-hierarchy' },
+  { id: 'sk-three-flows', track: 'sketch', title: 'One flow, three shapes', minutes: 20,
+    brief: 'Wizard, single page, or progressive conversation — the same task wears all three. Choose deliberately instead of reaching for the default.',
+    steps: ['Choose one routine task (book, invite, submit, reorder).', 'Sketch it as a step-by-step wizard — where does orientation live?', 'Sketch it as one page — where does scanning break?', 'Sketch it as progressive disclosure — what appears only when earned?', 'Score all three on familiarity, speed, and error recovery.'],
+    deliverable: 'Three thumbnail flows with a one-line verdict on which shape the task deserves.', topicId: 'depth-vs-breadth' },
+  { id: 'sk-states', track: 'sketch', title: 'State matrix for one component', minutes: 20,
+    brief: 'Products are experienced as state transitions. Sketch what never gets demoed: loading, error, empty, and the way back.',
+    steps: ['Pick one control that matters (button, table row, toggle, upload).', 'Draw the nine states: default, hover, focus, pressed, loading, success, error, empty, disabled.', 'Mark which states your team actually shipped — be honest.', 'Design the most-neglected one, including the recovery path.'],
+    deliverable: 'A 3×3 state grid with one refined state sketched at full fidelity.', topicId: 'feedback-states' },
+  // ── Read — primary sources, distilled ──
+  { id: 'rd-hig', track: 'read', title: 'One HIG page, three sentences', minutes: 20,
+    brief: 'Reading platform guidance as law misses the point; read it as argued reasoning with sources you can defend in a review.',
+    steps: ['Open the HIG page for one control you use weekly.', 'Distill: the rule, the reason it exists, the legitimate exception.', 'Find one place your last design disagreed — was the departure deliberate?', 'Write the one guideline that deserves to live in your design system.'],
+    deliverable: 'Three sentences of distilled guidance plus one honest violation or deliberate break.', topicId: 'affordances', link: 'https://developer.apple.com/design/human-interface-guidelines/' },
+  { id: 'rd-method', track: 'read', title: 'Method to decision', minutes: 20,
+    brief: 'Research methods are instruments, not rituals. Learn one the way you’d learn a tool: what it sees, what it can’t, what it costs.',
+    steps: ['Read one Nielsen Norman article on a research method you name-drop in interviews.', 'State the decision it can change — and one it cannot.', 'Write a case where you would refuse to run it.', 'Compare: what cheaper signal gets 70% of the answer?'],
+    deliverable: 'A when-to-use / when-to-refuse card for one method, in your own words.', topicId: 'choose-methods', link: 'https://www.nngroup.com/articles/' },
+  { id: 'rd-wcag', track: 'read', title: 'One success criterion, deeply', minutes: 20,
+    brief: 'WCAG stops being a compliance wall when you read one criterion at a time — as a promise to a specific person.',
+    steps: ['Pick one WCAG 2.2 success criterion you can’t recite from memory.', 'Read the criterion and one of its documented failure examples.', 'Picture the exact user it protects and name them.', 'Write the component rule that makes the promise automatic — no memory required.'],
+    deliverable: 'One encoded rule for your design system, with the failure it prevents.', topicId: 'wcag-defaults', link: 'https://www.w3.org/WAI/WCAG22/quickref/' },
+  // ── Observe — design in the wild ──
+  { id: 'ob-wild', track: 'observe', title: 'Craft-in-the-wild log', minutes: 15,
+    brief: 'Every product you touch today is running a tutorial. Catch one moment and name the principle that’s alive — or bleeding — in it.',
+    steps: ['Screenshot one interaction moment from an app you used today.', 'Name the principle in play (hierarchy, feedback, restraint, recovery…).', 'Annotate what the designers chose and what it cost.', 'Write two sentences: what would you keep, what would you test first?'],
+    deliverable: 'One annotated screenshot with a principle tag and two sentences.', topicId: 'three-ways' },
+  { id: 'ob-saydo', track: 'observe', title: 'The say–do gap, one coffee long', minutes: 20,
+    brief: 'Watch real behaviour for twenty unedited minutes. Workarounds are honest in a way interviews never are.',
+    steps: ['Watch someone (or yourself, screen-recorded) complete one routine task in a real tool.', 'Record only what you see: workarounds, hesitations, backtracks, muttered asides.', 'No judging, no fixing — just the faithful record.', 'Close with one hypothesis: what need does the biggest workaround hide?'],
+    deliverable: 'A workaround inventory plus one labelled hypothesis.', topicId: 'observation' },
+  { id: 'ob-first5', track: 'observe', title: 'First five minutes of anything', minutes: 20,
+    brief: 'Onboarding is wayfinding under a stopwatch. Feel it as a stranger once — it changes how you write first screens forever.',
+    steps: ['Sign up for a product you’ve never used (or a mode you’ve never opened).', 'Note the exact moment you felt oriented — and the exact moment you felt lost.', 'Capture what the product assumed you already knew.', 'Write the single intervention that would have rescued the lost moment.'],
+    deliverable: 'A two-moment map (oriented × lost) plus one designed rescue.', topicId: 'wayfinding' },
+  // ── Write — microcopy and narrative ──
+  { id: 'wr-error', track: 'write', title: 'Rescue one error message', minutes: 15,
+    brief: '“Something went wrong” is a confession, not a message. Rebuild one failure into something GOV.UK would publish.',
+    steps: ['Find one real error or empty state you’ve shipped or met this week.', 'Draft one: say plainly what happened — no blame, no jargon.', 'Draft two: say what is still safe (work saved, payment untouched).', 'Draft three: give the next step with a real verb. Keep the kindest of the three.'],
+    deliverable: 'The original message beside your rescue, with the rule you applied.', topicId: 'fail-points' },
+  { id: 'wr-labels', track: 'write', title: 'Labels that speak human', minutes: 15,
+    brief: 'Navigation fails in the words first, the pixels second. Translate the org chart back into the user’s vocabulary.',
+    steps: ['Collect five labels from a product you touch (menu items, settings names, buttons).', 'Translate each from internal jargon to the user’s words.', 'Read each aloud as the question a user is silently asking.', 'Keep any that survive both tests; redesign one that doesn’t.'],
+    deliverable: 'A five-row translation table, plus one redesigned label with its user question.', topicId: 'taxonomy-labelling' },
+  { id: 'wr-sixty', track: 'write', title: 'A decision in sixty words', minutes: 15,
+    brief: 'Senior thinking survives compression. If a decision needs 800 words to look good, it isn’t done being made.',
+    steps: ['Pick one design decision from your current work.', 'Write it in exactly 60 words: context, choice, cost accepted.', 'Remove every word the listener already knows.', 'Read it aloud — keep the one version you’d say in a review.'],
+    deliverable: 'One 60-word decision record you could paste into your story bank.', topicId: 'problem-framing' },
+  // ── Audit — accessibility as practice ──
+  { id: 'au-keyboard', track: 'audit', title: 'Keyboard-only task', minutes: 15,
+    brief: 'The keyboard is the lie detector of interaction design. Fifteen minutes without a mouse finds what QA never reports.',
+    steps: ['Put the mouse out of reach. Complete one full task in your current project with the keyboard alone.', 'Log every dead end, invisible focus, and unreachable action with a timestamp.', 'Try the same 60 seconds with a screen reader announcing the screen.', 'File the worst offender as a defect — with the task it blocks, not just the element.'],
+    deliverable: 'A failure log with one filed defect framed by the task it blocks.', topicId: 'screen-readers' },
+  { id: 'au-zoom', track: 'audit', title: 'Two-hundred-percent sweep', minutes: 15,
+    brief: 'Large text isn’t a preference; it’s the audit of whether your hierarchy was ever structural. Run one screen hot.',
+    steps: ['Set 200% zoom (or the largest Dynamic Type size) on one important screen.', 'Screenshot three breakages: clipping, overlap, or lost function.', 'Label each one: which of the three failure shapes is it?', 'Sketch the fix for the one that hides information.'],
+    deliverable: 'Three captured breakages, classified, plus one sketched repair.', topicId: 'dynamic-type' },
+  // ── Measure — reading metrics like a scientist ──
+  { id: 'me-three', track: 'measure', title: 'Three explanations before celebration', minutes: 15,
+    brief: 'The Masterbook drill: a metric moved. Conjure three honest explanations — including the uncomfortable one — before anyone ships the announcement.',
+    steps: ['Take today’s scenario: “Conversion rose 20%, but 30-day retention fell.”', 'Generate three plausible explanations — one flattering, one neutral, one damning.', 'Name the guardrail metric that would have caught the damning one earlier.', 'State the next evidence you would pull, and what it would change.'],
+    deliverable: 'Three explanations, one guardrail, one next-evidence request — written down.', topicId: 'guardrail-metrics' },
+  { id: 'me-heart', track: 'measure', title: 'HEART for one feature', minutes: 20,
+    brief: 'Happiness, Engagement, Adoption, Retention, Task Success — the craft is choosing two, not reciting five.',
+    steps: ['Pick one feature you own or use weekly. Name its actual job.', 'Choose the two HEART categories that match that job; discard three aloud.', 'For each: write Goal → Signal → Metric.', 'Name the segment and time window — averages lie by default.'],
+    deliverable: 'A two-line measurement plan with its segment and window attached.', topicId: 'heart-framework' },
+  { id: 'me-northstar', track: 'measure', title: 'Draft a North Star with honest inputs', minutes: 20,
+    brief: 'A North Star is value delivered repeatedly — not activity dressed as health. Draft yours, then arm the team with inputs they can actually steer.',
+    steps: ['Write the value-delivered-repeatedly statement for your product, in user language.', 'List three input behaviours that plausibly drive it — each with its “because”.', 'Attach one guardrail that must not degrade while you chase it.', 'Admit out loud which input’s causal story is weakest.'],
+    deliverable: 'One North Star statement, three inputs with causal stories, one guardrail.', topicId: 'input-output-metrics' },
+  // ── Systems — engineering constraints as design material ──
+  { id: 'sy-constraint', track: 'systems', title: 'The constraint drill', minutes: 20,
+    brief: 'Masterbook drill: engineering said no. “The API cannot return the total count cheaply.” Design the product that ships anyway.',
+    steps: ['Take the constraint: no cheap total result count.', 'Decide what the UX loses — and what it must preserve absolutely.', 'Redesign the affected UI honestly (“Page 1 of 4,213” dies; what replaces it?).', 'Write what you tell the user, and what you never claim.'],
+    deliverable: 'A redesigned state plus one sentence each for preserved value and honest copy.', topicId: 'apis-contracts' },
+  { id: 'sy-optimistic', track: 'systems', title: 'Optimistic, or honest?', minutes: 15,
+    brief: 'Every action wants to feel instant. Your job: decide which five percent are allowed to lie for 400 milliseconds, and which must wait for the truth.',
+    steps: ['List five real actions from your product (like, save, send, delete, pay).', 'Classify each against the test: reversible? succeeds >99%? consequence if wrong?', 'Mark the one currently optimistic that shouldn’t be (or vice versa).', 'Write the rollback copy for one, and the pending copy for another.'],
+    deliverable: 'A five-row speed/honesty ledger plus two lines of user-facing copy.', topicId: 'optimistic-ui' },
+  { id: 'sy-journey', track: 'systems', title: 'Request journey map', minutes: 20,
+    brief: 'Trace one click from finger to database and back. Latency, caches, permissions, and failure live at stations you’ve never drawn.',
+    steps: ['Pick one important action. Draw its journey: client → API → logic → data → response.', 'Mark every station where latency, staleness, or permission loss can appear.', 'Circle the station with the worst user-visible consequence.', 'Design that one moment: what shows, what’s promised, what recovers.'],
+    deliverable: 'A drawn request journey with one fully designed worst station.', topicId: 'caching-stale' },
+];
+
+// Round-robin cycle across tracks so consecutive days train different skills.
+export const drillCycle: SkillDrill[] = (() => {
+  const order: DrillTrack[] = ['sketch', 'read', 'observe', 'write', 'audit', 'measure', 'systems'];
+  const pools = order.map(t => skillDrills.filter(d => d.track === t));
+  const out: SkillDrill[] = [];
+  let i = 0;
+  while (out.length < skillDrills.length) { for (const p of pools) { if (p[i]) out.push(p[i]); } i++; }
+  return out;
+})();
+
 

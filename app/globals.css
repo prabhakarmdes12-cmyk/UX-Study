@@ -153,5 +153,23 @@ html.a11y-xl{zoom:1.22}
 .s-ref{background:#fde8e8;color:#9c1f1f}
 .pdot.ref{background:#c62828}
 
+/* ── Skill Drills — 15–20 min hands-on practice ───────────────────────────── */
+.drillcard{border-left:3px solid #4359df;background:#fbfcff}
+.minutabadge{display:inline-flex;align-items:center;gap:6px;background:#eef1fc;color:#3d52c9;font-size:12px;font-weight:700;border:1px solid #dfe4f8;border-radius:999px;padding:7px 12px;white-space:nowrap}
+.drillcard h2{margin:0 0 8px}
+.drillbrief{font-size:14.5px;line-height:1.65;color:#435272;margin:0 0 12px}
+.drillsteps{margin:0 0 12px;padding-left:22px;display:grid;gap:7px;font-size:14px;color:#3c4a60;line-height:1.55}
+.drillsteps li::marker{color:#8190ae;font-weight:700}
+.drilldeliver{font-size:13px;background:#f2f5fc;border:1px solid #e2e8f6;border-radius:8px;padding:10px 13px;color:#3d4c6d;margin:0 0 16px;line-height:1.5}
+.drilltimer{display:inline-flex;align-items:center;gap:4px;background:#202c65;color:#fff;border-radius:10px;padding:6px 8px 6px 14px;font-variant-numeric:tabular-nums;font-family:Manrope,sans-serif;font-weight:700;font-size:20px;letter-spacing:-.5px}
+.ghostbtn{background:transparent;border:1px solid transparent;color:#c6cfef;min-width:40px;min-height:40px;padding:7px;border-radius:8px}
+.ghostbtn:hover{background:rgba(255,255,255,.12);filter:none}
+.weekdots{display:flex;gap:6px;align-items:center;margin-top:16px}
+.weekdot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#eef1f6;color:#8c99ad;font-size:11px;font-weight:700;user-select:none}
+.weekdot.done{background:#e2f3e9;color:#166e43;border:1px solid #bfe3cf}
+.weekdot.today{border:1.5px dashed #a97d10}
+.weekdot.done.today{border-style:solid}
+@media(max-width:650px){.drilltimer{font-size:17px}}
+
 
 

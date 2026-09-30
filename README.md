@@ -15,6 +15,9 @@ A private, speaking-first practice workspace for senior product-design interview
 - Portfolio story bank with 12-field evidence discipline
 - Study modules and links to primary design sources
 - Progress, reflection, and export tools
+- Interactive UX Encyclopedia: 41 study topics across 10 design domains, each with a wisdom mirror pairing the principle with older traditions (Gita, Ramcharitmanas, Reiki, Zen…)
+- Kaizen daily loop: Principle of the Day with streaks, plus 20 skill drills (sketch / read / observe / write / audit / measure / systems) with a focus timer
+- Visible accessibility toolbar: text size, high contrast, calm motion, comfortable reading
 
 Source materials in this repository:
 - `Prabhakar_Product_Design_Interview_Masterbook_Apple_Google.docx` (2026 Masterbook)
